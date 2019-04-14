@@ -107,7 +107,7 @@ Now that both files have been created, the batch job can be submitted using the 
 qsub myProgram.sh
 ```
 
-The Grid Engine will then run the batch job and return the output in the current WRDS directory.
+The Grid Engine will then run the batch job and return several output files to the current WRDS directory (as instructed by `#$ -cwd`): a .csv file, which is the output of the Python program; a .sh.o##### file, which is the Grid Engine file that contains all the output from the .sh file; a sh.e##### file, which contains all the errors of the .sh file. ##### stands for the Grid Engine job number.
 
 # Using Python on Your Computer
 

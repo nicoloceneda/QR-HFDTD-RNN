@@ -23,10 +23,10 @@ Many users use an interactive job to test commands and queries to determine the 
 
 # Using Python on Your Computer
 
-WRDS provides an interface that allows users to query WRDS data when running Python on locally. To access the data, which is stored on a PostgreSQL database, WRDS provides a in-house Python module *wrds*, which can be installed as follows:
+WRDS provides an interface that allows users to query WRDS data when running Python locally. To access the data, which is stored on a PostgreSQL database, WRDS provides the in-house Python module *wrds*, which can be installed as follows:
 
 ```
-Install wrds module (from Terminal)
+Install wrds module (from Terminal):
 
 pip install wrds
 ```

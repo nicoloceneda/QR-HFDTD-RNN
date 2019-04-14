@@ -55,7 +55,7 @@ Now the setup is complete and it is possible to start working on jobs.
 
 There are two types of jobs that can be submitted on the WRDS Cloud: interactive jobs, which are executed line-by-line and immediately return a response to each command, like in a Python console; batch jobs, which are longer programs executed as a whole, like in a Python run. The former are more useful for exploration and testing, while the latter are more useful for elaborated, multi-step programs. Both types of jobs are scheduled and managed by the Grid Engine, which distributes job submissions to the least-busy computing node available. 
 
-To run interactive jobs it is necessary to schedule an interactive job with the WRDS Cloud Grid Engine as follows:
+To run interactive jobs it is necessary to schedule an interactive job with the WRDS Cloud Grid Engine. More precisely, it is necessary to 
 
 ```
 # Schedule an interactive job with the Grid Engine (from Terminal):
@@ -74,26 +74,20 @@ In [4]: quit
 
 The above code creates a `SSH` connection to wrds-cloud.wharton.upenn.edu, submits the job the the Grid Engine which assigns a computing node (in this case number 5), starts an interactive Python session, imports the `wrds` module, initiates a connection to WRDS which uses the *pgpass* file and runs a SQL query.
 
-To run batch jobs two files are needed: a Python program (.py) to be executed and a wrapper shell script (.sh) that submits the Python program to the Grid Engine. The following code creates the Python program (using the editor *nano*), which runs a SQL query and outputs the result as a .csv file:
+To run batch jobs two files are needed: a Python program (.py) to be executed and a wrapper shell script (.sh) to be submitted to the Grid Engine to specify the software to use and the program to run. More precisely, as with all jobs on the WRDS Cloud, batch jobs are submitted from one of the head nodes and run on one of the computing nodes. 
 
-```
-# Python program (from Terminal):   ???
-
-my-laptop:~ your_name$ ssh your_username@wrds-cloud.wharton.upenn.edu
-your_username@wrds-cloud.wharton.upenn.edu's password:
-[your_username@wrds-cloud-login1-h ~]$ qrsh
-```
+The following code creates the Python program (using the editor *nano*), which runs a SQL query and outputs the result as a .csv file:
 
 ```
 # Python program (from Terminal):
 
 import wrds
 db = wrds.Connection()
-data = db.raw_sql("SELECT date,dji FROM djones.djdaily")
-data.to_csv('myProgram.csv')
+data = db.raw_sql("select time_m, size, price from taqmsec.ctm_20180102")
+data.to_csv("myProgram.csv")
 ```
 
-The following code creates the wrapper shell script:
+The following code creates (using the editor *nano*) the wrapper shell script:
 
 ```
 # Wrapper shell script (from Terminal):
@@ -103,15 +97,17 @@ The following code creates the wrapper shell script:
 python3 myProgram.py
 ```
 
-The above code sets the shell of the wrapper script to *bash*, instructs the Grid Engine to look into the current directory *cwd* for referenced files and to store the output in the same directory, and runs the program .py suing Python 3. 
+The above code sets the shell of the wrapper script to `bash`, instructs (with `cwd`) the Grid Engine to look into the current directory for referenced files and to store the output in the same directory, and runs the program .py suing Python 3. 
 
 Now that both files have been created, the batch job can be submitted using the `qsub` command as follows:
 
 ```
 # Submit the batch job (from Terminal):
 
-qsub myProgram.sh
+[your_username@wrds-cloud-login1-h ~]$ qsub myProgram.sh
 ```
+
+> The command `qstat` allows to check on the status of the job running. If no result is returned, then it means that no job is currently running. 
 
 The Grid Engine will then run the batch job and return several output files to the current WRDS directory (as instructed by `#$ -cwd`): a .csv file, which is the output of the Python program; a .sh.o##### file, which is the Grid Engine file that contains all the output from the .sh file; a sh.e##### file, which contains all the errors of the .sh file. ##### stands for the Grid Engine job number.
 

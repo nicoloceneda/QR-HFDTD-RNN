@@ -57,7 +57,7 @@ There are two types of jobs that can be submitted on the WRDS Cloud: interactive
 
 ### Interactive Jobs
 
-To run interactive jobs it is necessary to schedule an interactive job with the WRDS Cloud Grid Engine. More precisely, it is necessary to 
+To run interactive jobs it is necessary to schedule an interactive job with the WRDS Cloud Grid Engine. As with all jobs on the WRDS Cloud, batch jobs are submitted from one of the head nodes and run on one of the computing nodes. 
 
 ```
 # Schedule an interactive job with the Grid Engine (from Terminal):

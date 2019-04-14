@@ -23,10 +23,31 @@ Many users use an interactive job to test commands and queries to determine the 
 
 # Using Python on Your Computer
 
-WRDS provides an interface that allows users to query WRDS data when running Python locally. To access the data, which is stored on a PostgreSQL database, WRDS provides the in-house Python module *wrds*, which can be installed as follows:
+WRDS provides an interface that allows users to query WRDS data when running Python locally. To access the data, which is stored on a PostgreSQL database, WRDS provides the in-house open-source Python module [wrds](https://github.com/wharton/wrds), which is available on [PyPI](https://pypi.org) and which can be installed as follows:
 
 ```
 Install wrds module (from Terminal):
 
 pip install wrds
 ```
+
+Once the *wrds* module has been installed, a *pgpass* needs to be set up on the workstation. This includes your WRDS username and password and allows to access the WRDS databases without needing to enter the username and password every time a connetion is established. The *pgpass* file can be created as follows:
+
+```
+Create a pgpass file (from Python Console):
+
+import wrds
+db = wrds.Connection(wrds_username='your_username')
+db.create_pgpass_file()
+```
+
+This will require to enter the WRDS username and password only at the first login. Once this file is created, to connect to WRDS, it is sufficient to run the followin code:
+
+```
+Establish a connection to WRDS (from Python Console):
+
+import wrds
+db = wrds.Connection(wrds_username='your_username')
+```
+
+The connection will be automatically established without the need to re-enter the WRDS username and password.

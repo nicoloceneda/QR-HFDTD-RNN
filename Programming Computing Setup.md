@@ -68,13 +68,46 @@ your_username@wrds-cloud.wharton.upenn.edu's password:
 [your_username@wrds-sas5-h ~]$ ipython3
 In [1]: import wrds
 In [2]: db = wrds.Connection()
-In [3]: db.raw_sql("SELECT date,dji FROM djones.djdaily")
+In [3]: db.raw_sql("select time_m, size, price from taqmsec.ctm_20180102")
 In [4]: quit
 [your_username@wrds-sas6-h ~]$ logout
 [your_username@wrds-cloud-login1-h ~]$
 ```
 
-The above code does creates a *SSH* connection to wrds-cloud.wharton.upenn.edu, submits the job the the Grid Engine which assigns a computing node (in this case number 5), starts an interactive Python session, imports the *wrds* module, initiates a connection to WRDS which uses the *pgpass* file, runs a SQL query.
+The above code creates a *SSH* connection to wrds-cloud.wharton.upenn.edu, submits the job the the Grid Engine which assigns a computing node (in this case number 5), starts an interactive Python session, imports the *wrds* module, initiates a connection to WRDS which uses the *pgpass* file, runs a SQL query.
+
+To run batch jobs two files are needed: the Python program (.py) to be executed and a wrapper shell script (.sh) that submits the Python program to the Grid Engine. The following code creates a Python program (using the editor *nano*), which runs a SQL query and outputs the result as a csv file:
+
+```
+# Python program (from Terminal):
+
+import wrds
+db = wrds.Connection()
+data = db.raw_sql("SELECT date,dji FROM djones.djdaily")
+data.to_csv('myProgram.csv')
+```
+
+The following code creates the wrapper shell script:
+
+```
+# Wrapper shell script (from Terminal):
+
+#!/bin/bash
+#$ -cwd
+python3 myProgram.py
+```
+
+The above code sets the shell of the wrapper script to *bash*, instructs the Grid Engine to look into the current directory *cwd* for referenced files and to store the output in the same directory, and runs the program .py suing Python 3. 
+
+Now that both files have been created, the batch job can be submitted using the `qsub` command as follows:
+
+```
+# Submit the batch job (from Terminal):
+
+qsub myProgram.sh
+```
+
+The Grid Engine will then run the batch job and return the output in the current WRDS directory.
 
 # Using Python on Your Computer
 

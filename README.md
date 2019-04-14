@@ -6,4 +6,5 @@ Institution:  University of St Gallen
 Course:       Master of Banking and Finance
 
 The repository *Thesis* contains the following files:
-* *code.py*
+* *code.py*: Code written in Python 3.7
+* *Programming and Computing Setup.md*: detailed explanation of the setup required to run Python locally on a Mac (Apple Inc.) device and on the WRDS cloud.

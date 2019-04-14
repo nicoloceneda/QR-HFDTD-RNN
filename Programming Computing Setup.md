@@ -55,6 +55,8 @@ Now the setup is complete and it is possible to start working on jobs.
 
 There are two types of jobs that can be submitted on the WRDS Cloud: interactive jobs, which are executed line-by-line and immediately return a response to each command, like in a Python console; batch jobs, which are longer programs executed as a whole, like in a Python run. The former are more useful for exploration and testing, while the latter are more useful for elaborated, multi-step programs. Both types of jobs are scheduled and managed by the Grid Engine, which distributes job submissions to the least-busy computing node available. 
 
+### Interactive Jobs
+
 To run interactive jobs it is necessary to schedule an interactive job with the WRDS Cloud Grid Engine. More precisely, it is necessary to 
 
 ```
@@ -73,6 +75,8 @@ In [4]: quit
 ```
 
 The above code creates a `SSH` connection to wrds-cloud.wharton.upenn.edu, submits the job the the Grid Engine which assigns a computing node (in this case number 5), starts an interactive Python session, imports the `wrds` module, initiates a connection to WRDS which uses the *pgpass* file and runs a SQL query.
+
+### Batch Jobs
 
 To run batch jobs two files are needed: a Python program (.py) to be executed and a wrapper shell script (.sh) to be submitted to the Grid Engine to specify the software to use and the program to run. More precisely, as with all jobs on the WRDS Cloud, batch jobs are submitted from one of the head nodes and run on one of the computing nodes. 
 

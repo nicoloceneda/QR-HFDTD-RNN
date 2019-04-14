@@ -1,14 +1,26 @@
 # Using Python on the WRDS Cloud
 
-WRDS Cloud is a high-performance computing cluster to write and execute elaborated research programs. It offers near-line access to all WRDS data and it supports a wide variety of programming languages, including Python. More information is available in the [Introduction to the WRDS Cloud](https://wrds-www.wharton.upenn.edu/pages/support/the-wrds-cloud/introduction-wrds-cloud/). 
+WRDS Cloud is a high-performance computing cluster to write and execute elaborated research programs. It offers near-line access to all WRDS data and it supports a wide variety of programming languages, including Python. It is composed of two head nodes and a grid of 30 computing nodes. More information is available in the [Introduction to the WRDS Cloud](https://wrds-www.wharton.upenn.edu/pages/support/the-wrds-cloud/introduction-wrds-cloud/). 
 
+To use the Python software and access WRDS data directly on the cloud, it is necessary to connect to the WRDS cloud via *Secure Socket Shell* (SSH). *SSH* is a remote connection protocol that allows to enter commands and run code in the WRDS native UNIX environment. A *SSH* connection can be established as follows:
 
+```
+# Establish a SSH connection to WRDS Cloud (from Terminal):
 
-The WRDS Cloud is comprised of two head nodes and a grid of 30 compute nodes. When you connect to the WRDS Cloud using SSH, you are connecting to one of the head nodes. When you submit a job to run in the WRDS Cloud, you are submitting to one of the available compute nodes for processing.
+my-laptop:~ joe$ ssh your_username@wrds-cloud.wharton.upenn.edu
+your_username@wrds-cloud.wharton.upenn.edu's password:
+[your_username@wrds-cloud-login1-h ~]$
+```
 
-Head nodes are designed for high-concurrency traffic, while the compute nodes are designed for CPU- and memory-intensive job execution.
+Once connected, it is possible to use Python and access WRDS databases from a command-line, as well as use UNIX commands to interact with the WRDS Cloud. *SSH* establishes a connection to one of the two head nodes of the WRDS Cloud (wrds-cloud-login1 or wrds-cloud-login2). These are designed for high-concurrency traffic and are meant to write programs, examine data and other computationally light activities. 
+> To disconnect from WRDS Cloud, type on the Terminal `logout`
 
-Both your WRDS home directory and the scratch directory are shared across all nodes, which allows you to work on any compute node in the grid without needing to transfer any data between systems.
+For computationally intensive activities, it is necessary to establish a connection to the computing nodes, which are designed for for high-performance CPU- and memory-intensive execution. 
+
+```
+```
+
+The WRDS home directory and a scratch directory are shared across all nodes.
 
 
 
@@ -26,7 +38,7 @@ Many users use an interactive job to test commands and queries to determine the 
 WRDS provides an interface that allows users to query WRDS data when running Python locally. To access the data, which is stored on a PostgreSQL database, WRDS provides the in-house open-source Python module [wrds](https://github.com/wharton/wrds), which is available on [PyPI](https://pypi.org) and which can be installed as follows:
 
 ```
-Install wrds module (from Terminal):
+# Install the wrds module (from Terminal):
 
 pip install wrds
 ```
@@ -41,13 +53,13 @@ db = wrds.Connection(wrds_username='your_username')
 db.create_pgpass_file()
 ```
 
-This will require to enter the WRDS username and password only at the first login. Once this file is created, to connect to WRDS, it is sufficient to run the followin code:
+This will require to enter the WRDS username and password only at the first login. Once this file is created, it is sufficient to run the followin code to establish a connection to WRDS:
 
 ```
-Establish a connection to WRDS (from Python Console):
+# Establish a connection to WRDS (from Python Console):
 
 import wrds
 db = wrds.Connection(wrds_username='your_username')
 ```
 
-The connection will be automatically established without the need to re-enter the WRDS username and password.
+The connection will be automatically established without needing to re-enter the WRDS username and password.

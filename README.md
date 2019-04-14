@@ -34,7 +34,7 @@ pip install wrds
 Once the *wrds* module has been installed, a *pgpass* needs to be set up on the workstation. This includes your WRDS username and password and allows to access the WRDS databases without needing to enter the username and password every time a connetion is established. The *pgpass* file can be created as follows:
 
 ```
-Create a pgpass file (from Python Console):
+# Create a pgpass file (from Python Console):
 
 import wrds
 db = wrds.Connection(wrds_username='your_username')

@@ -4,7 +4,7 @@
 *Contact*: nicolo.ceneda@student.unisg.ch \
 *Institution*: University of St Gallen \
 *Course*: Master of Banking and Finance \
-*Last update: 15 April 2019
+*Last update*: 15 April 2019
 
 The repository *Thesis* contains the following files:
 * **code.py**: Code written in Python 3.7

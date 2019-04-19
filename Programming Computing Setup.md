@@ -24,6 +24,7 @@ For computationally intensive activities, it is necessary to establish a connect
 ```
 
 > To disconnect from the computing node node (and go back to the head node), type `logout` in the Terminal.
+
 >The WRDS home directory and a scratch directory are shared across all nodes.
 
 Once the interactive session has been initiated, a *pgpass* needs to be set up. This includes your WRDS username and password and allows to access the WRDS databases without needing to enter the username and password every time a connetion is established. The *pgpass* file can be created by starting the `iPython3` shell in an interactive session as follows:

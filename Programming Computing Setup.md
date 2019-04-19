@@ -70,6 +70,9 @@ your_username@wrds-cloud.wharton.upenn.edu's password:
 [your_username@wrds-sas5-h ~]$ ipython3
 In [1]: import wrds
 In [2]: db = wrds.Connection()
+
+------- Up to here is the setup explained in the previous section -------
+
 In [3]: db.raw_sql("select time_m, size, price from taqmsec.ctm_20180102")
 In [4]: quit
 [your_username@wrds-sas6-h ~]$ logout

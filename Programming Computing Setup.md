@@ -73,7 +73,7 @@ In [2]: db = wrds.Connection()
 
 ------- Up to here is the setup explained in the previous section -------
 
-In [3]: db.raw_sql("select time_m, size, price from taqmsec.ctm_20180102")
+In [3]: db.raw_sql("select time_m, size, price from taqmsec.ctm_20180102 where sym_root = 'AAPL' ")
 In [4]: quit
 [your_username@wrds-sas6-h ~]$ logout
 [your_username@wrds-cloud-login1-h ~]$

@@ -12,7 +12,7 @@ your_username@wrds-cloud.wharton.upenn.edu's password:
 [your_username@wrds-cloud-login1-h ~]$
 ```
 
-> To disconnect from WRDS Cloud, type `logout` in the Terminal.
+> To disconnect from the head node (i.e. from the WRDS Cloud), type `logout` in the Terminal.
 
 For computationally intensive activities, it is necessary to establish a connection to the computing nodes, which are designed for high-performance CPU- and memory-intensive execution. To to do, it is necesary to start an interactive session with `qrsh` as follows:
 
@@ -23,6 +23,7 @@ For computationally intensive activities, it is necessary to establish a connect
 [your_username@wrds-sas5-h ~]$
 ```
 
+> To disconnect from the computing node node (and go back to the head node), type `logout` in the Terminal.
 >The WRDS home directory and a scratch directory are shared across all nodes.
 
 Once the interactive session has been initiated, a *pgpass* needs to be set up. This includes your WRDS username and password and allows to access the WRDS databases without needing to enter the username and password every time a connetion is established. The *pgpass* file can be created by starting the `iPython3` shell in an interactive session as follows:

@@ -14,7 +14,7 @@ your_username@wrds-cloud.wharton.upenn.edu's password:
 
 > To disconnect from WRDS Cloud, type `logout` in the Terminal.
 
-For computationally intensive activities, it is necessary to establish a connection to the computing nodes, which are designed for for high-performance CPU- and memory-intensive execution. To to do, it is necesary to start an interactive session with `qrsh` as follows:
+For computationally intensive activities, it is necessary to establish a connection to the computing nodes, which are designed for high-performance CPU- and memory-intensive execution. To to do, it is necesary to start an interactive session with `qrsh` as follows:
 
 ```
 # Start an interactive session (from Terminal):

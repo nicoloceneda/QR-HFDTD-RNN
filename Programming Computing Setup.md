@@ -47,8 +47,8 @@ This will require to enter the WRDS username and password only at the first logi
 ```
 # Establish a connection to WRDS (from Terminal):
 
-import wrds
-db = wrds.Connection()
+In [1]: import wrds
+In [2]: db = wrds.Connection()
 ```
 
 Now the setup is complete and it is possible to start working on jobs. 
@@ -85,7 +85,7 @@ The above code creates a `SSH` connection to wrds-cloud.wharton.upenn.edu, submi
 
 To run batch jobs two files are needed: a Python program (.py) to be executed and a wrapper shell script (.sh) to be submitted to the Grid Engine to specify the software to use and the program to run. More precisely, as with all jobs on the WRDS Cloud, batch jobs are submitted from one of the head nodes and run on one of the computing nodes. 
 
-The following code creates the Python program (using the editor *nano*), which runs a SQL query and outputs the result as a .csv file:
+The following code creates the Python program `myProgram.py` (using the editor *nano*), which runs a SQL query and outputs the result as a .csv file:
 
 ```
 # Python program (from Terminal):
@@ -93,7 +93,7 @@ The following code creates the Python program (using the editor *nano*), which r
 import wrds
 db = wrds.Connection()
 data = db.raw_sql("select time_m, size, price from taqmsec.ctm_20180102")
-data.to_csv("myProgram.csv")
+data.to_csv("ctm_20180102.csv")
 ```
 
 The following code creates (using the editor *nano*) the wrapper shell script:
@@ -106,9 +106,9 @@ The following code creates (using the editor *nano*) the wrapper shell script:
 python3 myProgram.py
 ```
 
-The above code sets the shell of the wrapper script to `bash`, instructs (with `cwd`) the Grid Engine to look into the current directory for referenced files and to store the output in the same directory, and runs the program .py suing Python 3. 
+The above code sets the shell of the wrapper script to `bash`, instructs (with `cwd`) the Grid Engine to look into the current directory for referenced files and to store the output in the same directory, and runs the program `myProgram.py` using Python 3. 
 
-Now that both files have been created, the batch job can be submitted using the `qsub` command as follows:
+Now that both files have been created, the batch job can be submitted using the `qsub` command, as follows:
 
 ```
 # Submit the batch job (from Terminal):
@@ -116,7 +116,7 @@ Now that both files have been created, the batch job can be submitted using the 
 [your_username@wrds-cloud-login1-h ~]$ qsub myProgram.sh
 ```
 
-> The command `qstat` allows to check on the status of the job running. If no result is returned, then it means that no job is currently running. 
+> The command `qstat` allows to check the status of the job running. If no result is returned, then it means that no job is currently running. 
 
 The Grid Engine will then run the batch job and return several output files to the current WRDS directory (as instructed by `#$ -cwd`): a .csv file, which is the output of the Python program; a .sh.o##### file, which is the Grid Engine file that contains all the output from the .sh file; a sh.e##### file, which contains all the errors of the .sh file. ##### stands for the Grid Engine job number.
 
@@ -127,7 +127,7 @@ WRDS provides an interface that allows users to query WRDS data when running Pyt
 ```
 # Install the wrds module (from Terminal):
 
-pip install wrds
+my-laptop:~ your_name$ pip install wrds
 ```
 
 Once the `wrds` module has been installed, a *pgpass* needs to be set up on the workstation. This includes your WRDS username and password and allows to access the WRDS databases without needing to enter the username and password every time a connetion is established. The *pgpass* file can be created as follows:
@@ -135,9 +135,9 @@ Once the `wrds` module has been installed, a *pgpass* needs to be set up on the 
 ```
 # Create a pgpass file (from Python Console):
 
-import wrds
-db = wrds.Connection(wrds_username='your_username')
-db.create_pgpass_file()
+In [1]: import wrds
+In [2]: db = wrds.Connection(wrds_username='your_username')
+In [3]: db.create_pgpass_file()
 ```
 
 This will require to enter the WRDS username and password only at the first login. Once this file is created, it is sufficient to run the following code to establish a connection to WRDS:
@@ -145,6 +145,6 @@ This will require to enter the WRDS username and password only at the first logi
 ```
 # Establish a connection to WRDS (from Python Console):
 
-import wrds
-db = wrds.Connection(wrds_username='your_username')
+In [1]: import wrds
+In [2]: db = wrds.Connection(wrds_username='your_username')
 ```

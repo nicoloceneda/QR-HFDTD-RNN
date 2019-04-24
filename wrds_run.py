@@ -1,111 +1,87 @@
 import argparse
 import pandas as pd
+import wrds
 
 
-# Create a SQL query
+# SQL query
 
-def sql_query(table, symbol, nrows):
+def sql_query( table, symbol, nrows):                                                                                                       # TODO: Add option to select only certain cols
 
     if nrows > 0:
-        query = 'SELECT * FROM {} WHERE sym_root = {} LIMIT {}'.format(table, symbol, nrows)
+        query = 'SELECT * FROM {} WHERE sym_root = {} LIMIT'.format(table, symbol, nrows)
     else:
         query = 'SELECT * FROM {} WHERE sym_root = {}'.format(table, symbol)
 
     return query
 
 
-# Parameters
+# Query attempt function
 
-class TradeCleanerParams:
+def query_loop(query, max_attempts):
 
-    def __init__(self, args):
-        self.first_hour = args.first_hour
-        self.last_hour = args.last_hour
-        self.col_types = {'EX': str, 'PRICE': float, 'SIZE': float}
+    db = wrds.Connection()
 
+    for attempt in range(max_attempts):
 
-class QuoteCleanerParams:
-
-    def __init__(self, args):
-        self.first_hour = args.first_hour
-        self.last_hour = args.last_hour
-        self.col_types = {'EX': str, 'BID': float, 'BIDSIZ': float, 'ASK': float, 'ASKSIZ': float}
-        self.accepted_quote_cond = ['A', 'B', 'H', 'O', 'R', 'W']
-        self.quote_null_filter = True
-        self.min_spread = 0
-        self.max_spread = 5
-
-
-class NbboCleanerParams:
-
-    def __init__(self, args):
-        self.first_hour = args.first_hour
-        self.last_hour = args.last_hour
-        self.col_type = {'EX': float, 'BID': float, 'BIDSIZ': float, 'ASK': float, 'ASKSIZ': float}
-        self.accepted_quote_cond = ['A', 'B', 'H', 'O', 'R', 'W']
-
-
-class QuoteNbboParams:
-
-    def __init__(self, args):
-        self.pad_limit = args.pad_limit
-        self.col_types = {'BBID': float, 'BBID_SIZE': float, 'TOTBID_SIZE': float, 'BASK': float, 'BASK_SIZE': float, 'TOTASK_SIZE': float,
-                          'VWASK': float, 'VWBID': float}
-
-
-class QuoteNbboMergeParams:
-
-    def __init__(self, args):
-        self.col_types = {'BID': float, 'BID_SIZ': float, 'ASK': float, 'ASK_SIZ': float}
-        self.new_colnames = {'BID': 'BBID', 'BID_SIZ': 'BBID_SIZE', 'ASK': 'BASK', 'ASK_SIZ': 'BASK_SIZE'}
-
-
-# Query loop function
-
-def query_loop(query, max_trials):
-
-    db = wrds_run.Connection()
-
-    for trial in range(max_trials):
         try:
             data = db.raw_sql(query)
-            db.close()
+        except OperationalError:
+            if attempt < max_attempts-1:
+                print('OperationalError. Trying again')
+            else:
+                print('OperationalError. Max attempts reached')
+        except Exception:
+            if attempt < max_attempts - 1:
+                print('Other error. Trying again')
+            else:
+                print('Other error. Max attempts reached')
+        else:
             return data, True
-        except:
-            print('Query failed')
-            if trial < max_trials -1:
-                print('Trying again')
+        finally:
+            db.close()
 
-    db.close()
-    return None, False # TODO: Shouldn't this be inside the exception?
+    return None, False
+
+
+# Parameters
+
+class TradeCleanParams:
+
+    def __init__(self, args):
+        self.first_hour = args.first_hour
+        self.last_hour = args.last_hour
+        self.col_types = {'ex': str, 'price': float, 'size': float}
 
 
 # Parser
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-nbbo', action='store_true', help='Download the nbbo from the file. Otherwise it will be constructed.')            # 1
-    parser.add_argument('-save_output', action='store_true', help='Save the output.')
-    parser.add_argument('-output_name', type=str, default='merged_trade_quotes', help='Name of output file.')
-    parser.add_argument('-save_only_aggregated', action='store_true', help='Save only aggregated data.')
-    parser.add_argument('-nrows', type=int, default=10000, help='Number of rows to load. If 0 or negative load all rows.')
-    parser.add_argument('-first_hour', type=str, default='9:30', help='First hour to accept trades/quotes.')
-    parser.add_argument('-last_hour', type=str, default='15:30', help='last hour to accept trades/quotes.')
-    parser.add_argument('-pad_limit', type=int, default=1000, help='Number rows to fill forward quotes if na')
-    parser.add_argument('-max_trials', type=int, default=3, help='Number of times to try to query db')                                      # 9
+
+    parser = argparse.ArgumentParser(description='something')
+
+    def check_positive(value):
+        if value < 0:
+            raise argparse.ArgumentTypeError('Error: enter an integer >= 0')
+        return value
+
+    parser.add_argument('-symbol', type=str, default='AAPL', help='Symbol to process')
+    parser.add_argument('-nrows', type=check_positive, default=100, help='Number of rows to load. If 0 then it loads all rows.')
+
+    parser.add_argument('-start_time', type=str, default='9:30', help='Start time to load trades')                                          # TODO: check the hours
+    parser.add_argument('-end_time', type=str, default='15:30', help='End hour to load trades')
+    parser.add_argument('-start_date', type=str, default='2015-11-01', help='Start date to load trades')                                    # TODO: check dates
+    parser.add_argument('-end_date', type=str, default='2017-01-01', help='End date to load trades')
+
+    parser.add_argument('-max_attempts', type=int, default=3, help='Number of attempts to try to query the database.')
+
+    parser.add_argument('-save_output', action='store_true', help='Save the output file.')
+    parser.add_argument('-output_name', type=str, default='trades', help='Name of output file.')
     parser.add_argument('-agg_unit', type=str, default='sec', help='Seconds or milliseconds on which to aggregate')
     parser.add_argument('-dt', type=int, default=100, help='Number of agg_units to aggregate')
-    parser.add_argument('-start_date', type=str, default='2015-11-01', help='First date to download')                                       # 12
-    parser.add_argument('-end_date', type=str, default='2017-01-01', help='Last date to download')                                          # 13
-    parser.add_argument('-symbol', type=str, default='AAPL', help='Symbol to process')                                                      # 14
-    parser.add_argument('-debug', action='store_true', help='Debug flag')
 
     args = parser.parse_args()
 
-    if args.debug:
-        args.start_date = '2012-09-28'
-        args.end_date = '2017-10-03'
-
+    symbols = [args.symbol]                                                                                                                 # TODO: remove these three lines?
     print(args.start_date)
     print(args.end_date)
 

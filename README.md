@@ -1,4 +1,4 @@
-# HEAVY TAIL QUANTILE FUNCTION WITH A LONG-SHORT TERM MEMORY UNIT TO RISK MANAGE ULTRA HIGH FREQUENCY DATA
+# Heavy Tail Quantile Function with a Long-Short Term Memory Unit to Risk Manage Ultra High Frequency Data
 
 *Author*: Nicolo Ceneda \
 *Contact*: nicolo.ceneda@student.unisg.ch \

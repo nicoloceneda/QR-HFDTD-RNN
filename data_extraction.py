@@ -13,7 +13,6 @@
 
 import pandas as pd
 import argparse
-import taq_cleaner as tqc
 
 
 # DATA EXTRACTION
@@ -21,8 +20,8 @@ import taq_cleaner as tqc
 
 # SQL query function to extract the data
 
-def sql_query(table, symbol, nrows):                                                                                                        # TODO: Add option to select only certain cols
-                                                                                                                                            # TODO: Add the option to select the dates
+def sql_query(table, symbol, nrows):
+
     if nrows > 0:
         query = "SELECT * FROM {} WHERE sym_root = '{}' LIMIT {}".format(table, symbol, nrows)
     else:
@@ -57,10 +56,39 @@ def query_attempt(query, max_attempts):                                         
 # Parameters
 
 class TradeCleanParams:
+
     def __init__(self, arg):
         self.start_time = arg.first_hour
         self.end_time = arg.last_hour
         self.col_types = {'ex': str, 'price': float, 'size': float}
+
+
+class TradesCleaner:
+
+    def __init__(self, data):
+
+        self.data = data
+        self.data_type = 'trades'
+        self.args = TradeCleanParams(args)
+
+        if not set(self.args.col_types.keys()).issubset(self.data.columns):
+            raise ValueError('One or more columns are not contained in the queried data.')
+
+        self.make_time_idx()
+        self.data = self.data.between_time(self.args.start_time, self.args.end_time)
+
+        self.clean_trades()
+
+    def make_time_idx(self):
+
+        datetime = self.data['date'].astype(str)+' '+self.data['time_m'].astype(str)
+        self.data = self.data.set_index(pd.DatetimeIndex(pd.to_datetime(datetime)))
+
+    def clean_trades(self):
+
+        self.data['tr_corr'][self.data['tr_corr']=='00'] = 0
+        self.data = self.data[(self.data['tr_corr'] == 0) & (self.data['price'] > 0)]
+        self.data = self.data[list(self.args.col_types.keys())]
 
 
 # Command-line interface to extract data
@@ -86,10 +114,6 @@ if __name__ == '__main__':
     parser.add_argument('--end_date', type=str, default='2017-01-01', help='End date to extract the data.')
 
     args = parser.parse_args()
-
-    # Cleaning parameters
-
-    cleaning_params = {'trades': TradeCleanParams(args)}                                                                                      # TODO: CHECK
 
     # List of all tables in 'taqmsec'
 
@@ -129,7 +153,7 @@ if __name__ == '__main__':
 
                 if success_query_trades:
                     print('Cleaning the data.')
-                    trades_cleaner = tqc.taq_cleaner(queried_trades, 'trades', cleaning_params)
+                    trades_cleaner = TradesCleaner(queried_trades)
                 else:
                     print('Could not load the data for security {} and date {}: skipping to the next date.'.format(sym, date))
 

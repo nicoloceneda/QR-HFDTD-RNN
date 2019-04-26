@@ -1,4 +1,4 @@
-# Heavy Tail Quantile Function with a Long-Short Term Memory Unit to Risk Manage Ultra High Frequency Data
+# Parsimonious Quantile Regression via a LSTM Recurrent Neural Network to Risk Manage Ultra High Frequency Data
 
 *Author*: Nicolo Ceneda \
 *Contact*: nicolo.ceneda@student.unisg.ch \

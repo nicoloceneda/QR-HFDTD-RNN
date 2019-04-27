@@ -138,7 +138,7 @@ WRDS provides an interface that allows users to query WRDS data when running Pyt
 ```
 # Install the wrds module (from Terminal):
 
-my-laptop:~ your_name$ pip install wrds
+my_laptop:my_directory my_name$ pip install wrds
 ```
 
 Once the `wrds` module has been installed, a *pgpass* needs to be set up on the workstation. This includes your WRDS username and password and allows to access the WRDS databases without needing to enter the username and password every time a connetion is established. The *pgpass* file can be created as follows:
@@ -147,7 +147,7 @@ Once the `wrds` module has been installed, a *pgpass* needs to be set up on the 
 # Create a pgpass file (from Python Console):
 
 In [1]: import wrds
-In [2]: db = wrds.Connection(wrds_username='your_username')
+In [2]: db = wrds.Connection(wrds_username='my_wrds_username')
 In [3]: db.create_pgpass_file()
 ```
 
@@ -157,5 +157,5 @@ This will require to enter the WRDS username and password only at the first logi
 # Establish a connection to WRDS (from Python Console):
 
 In [1]: import wrds
-In [2]: db = wrds.Connection(wrds_username='your_username')
+In [2]: db = wrds.Connection(wrds_username='my_wrds_username')
 ```

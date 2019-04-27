@@ -88,7 +88,7 @@ To run batch jobs two files are needed: a Python program (.py) to be executed an
 
 > Note that a batch job requires a *pgpass* file as it cannot prompt for passwords.
 
-The first step is the creation of the Python program `my_program.py` (using the editor *nano*), containing the following code:
+The first step is the creation of the Python program `my_program.py`, using a command line editor such as *nano* or writing it on your local computer and uploading it with *SFTP*. Here is an example of the content of this program:
 
 ```
 # Python program (from Terminal):
@@ -101,7 +101,7 @@ data.to_csv("ctm_20180102.csv")
 
 The above code establishes a connection to WRDS, runs a SQL query and outputs the result as a .csv file.
 
-The second step is the creation of the wrapper shell script `my_program.sh` (using the editor *nano*), containing the following code:
+The second step is the creation of the wrapper shell script `my_program.sh`, using a command line editor such as *nano* or writing it on your local computer and uploading it with *SFTP*. Here is an example of the content of this program:
 
 ```
 # Wrapper shell script (from Terminal):
@@ -130,6 +130,8 @@ Now that both files have been created, the wrapper script can be submitted using
 The Grid Engine will then run the batch job and return several output files to the same directory as the wrapper script (as instructed by `#$ -cwd`): a my_program.csv file, which is the output of the Python program; a my_program.sh.o##### file, which is the Grid Engine file that contains all the output from the my_program.sh file; a my_program.sh.e##### file, which contains all the errors of the my_program.sh file. ##### stands for the Grid Engine job number.
 
 > Note that running the program multiple times will overwrite the my_program.csv file with the new output. To avoid this, it is sufficient to rename the initial output with the command `mv my_program.csv new_name.csv`. On the contrary, the Grid Engine output and error files are not overwritten as their name contains the job number, which makes them unique.
+
+#### Transferring Files with SFTP
 
 # Using Python on Your Computer
 

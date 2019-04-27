@@ -122,6 +122,8 @@ Now that both files have been created, the wrapper script can be submitted using
 ```
 # Submit the batch job (from Terminal):
 
+my_laptop:my_directory my_name$ ssh my_wrds_username@wrds-cloud.wharton.upenn.edu
+my_wrds_username@wrds-cloud.wharton.upenn.edu's password:
 [my_wrds_username@wrds-cloud-login1-h ~]$ qsub my_program.sh
 ```
 

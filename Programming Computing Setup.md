@@ -80,13 +80,15 @@ In [4]: quit
 [my_wrds_username@wrds-cloud-login1-h ~]$
 ```
 
-The above code creates a `SSH` connection to wrds-cloud.wharton.upenn.edu, submits the job to the Grid Engine, which assigns a computing node (in this case number 5), starts an interactive Python session, imports the `wrds` module, initiates a connection to WRDS, which uses the *pgpass* file, and runs a SQL query.
+The above code creates a `SSH` connection to wrds-cloud.wharton.upenn.edu, submits the interactive job to the Grid Engine, which assigns a computing node (in this case number 5), starts an interactive Python session, imports the `wrds` module, initiates a connection to WRDS, which uses the crdentials in the *pgpass* file, and runs a SQL query.
 
 ### Batch Jobs
 
 To run batch jobs two files are needed: a Python program (.py) to be executed and a wrapper shell script (.sh) to be submitted to the Grid Engine to specify the software to use and the program to run. It is this wrapper script that is submitted to Grid Engine, not research program. More precisely, as with all jobs on the WRDS Cloud, batch jobs are submitted from one of the head nodes and run on one of the computing nodes. 
 
-The following code creates the Python program `myProgram.py` (using the editor *nano*), which runs a SQL query and outputs the result as a .csv file:
+> Note that a batch job requires a *pgpass* file as it cannot prompt for passwords.
+
+The first step is the creation of the Python program `my_program.py` (using the editor *nano*), containing the following code:
 
 ```
 # Python program (from Terminal):
@@ -97,7 +99,9 @@ data = db.raw_sql("select time_m, size, price from taqmsec.ctm_20180102")
 data.to_csv("ctm_20180102.csv")
 ```
 
-The following code creates (using the editor *nano*) the wrapper shell script:
+The above code establishes a connection to WRDS, runs a SQL query and outputs the result as a .csv file.
+
+The second step is the creation of the wrapper shell script `my_program.sh` (using the editor *nano*), containing the following code:
 
 ```
 # Wrapper shell script (from Terminal):
@@ -111,19 +115,21 @@ python3 my_program.py
 
 > Note that since the wrapper script is simply a shell script, it supports any UNIX commands. 
 
-The above code sets the shell of the wrapper script to `bash`, instructs (with `cwd`) the Grid Engine to look into the current directory for referenced files and to store the output in the same directory, sends an email to the specified addresss when the job starts and terminates, and runs the program `myProgram.py` using Python 3. 
+The above code sets the shell of the wrapper script to `bash`, instructs (with `cwd`) the Grid Engine to look into the current directory for referenced files and to store the output in the same directory, sends an email to the specified addresss when the job starts and terminates, and runs the program `my_program.py` using Python 3. 
 
 Now that both files have been created, the wrapper script can be submitted using the `qsub` command, as follows:
 
 ```
 # Submit the batch job (from Terminal):
 
-[my_wrds_username@wrds-cloud-login1-h ~]$ qsub myProgram.sh
+[my_wrds_username@wrds-cloud-login1-h ~]$ qsub my_program.sh
 ```
 
 > The command `qstat` allows to check the status of the job running. If no result is returned, then it means that no job is currently running or queued, i.e. that all jobs have been completed. 
 
-The Grid Engine will then run the batch job and return several output files to the filesystem location active at the time the job was submitted (as instructed by `#$ -cwd`): a .csv file, which is the output of the Python program; a .sh.o##### file, which is the Grid Engine file that contains all the output from the .sh file; a sh.e##### file, which contains all the errors of the .sh file. ##### stands for the Grid Engine job number.
+The Grid Engine will then run the batch job and return several output files to the same directory as the wrapper script (as instructed by `#$ -cwd`): a my_program.csv file, which is the output of the Python program; a my_program.sh.o##### file, which is the Grid Engine file that contains all the output from the my_program.sh file; a my_program.sh.e##### file, which contains all the errors of the my_program.sh file. ##### stands for the Grid Engine job number.
+
+> Note that running the program multiple times will overwrite the my_program.csv file with the new output. To avoid this, it is sufficient to rename the initial output with the command `mv my_program.csv new_name.csv`. On the contrary, the Grid Engine output and error files are not overwritten as their name contains the job number, which makes them unique.
 
 # Using Python on Your Computer
 

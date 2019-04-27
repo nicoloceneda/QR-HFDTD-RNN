@@ -91,7 +91,7 @@ To run batch jobs two files are needed: a Python program (.py) to be executed an
 The first step is the creation of the Python program `my_program.py`, using a command line editor such as *nano* or writing it on your local computer and uploading it with *SFTP*. Here is an example of the content of this program:
 
 ```
-# Python program (from Terminal):
+# Python program script:
 
 import wrds
 db = wrds.Connection()
@@ -104,7 +104,7 @@ The above code establishes a connection to WRDS, runs a SQL query and outputs th
 The second step is the creation of the wrapper shell script `my_program.sh`, using a command line editor such as *nano* or writing it on your local computer and uploading it with *SFTP*. Here is an example of the content of this program:
 
 ```
-# Wrapper shell script (from Terminal):
+# Wrapper shell script:
 
 #!/bin/bash
 #$ -cwd

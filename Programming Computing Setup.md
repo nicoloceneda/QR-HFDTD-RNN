@@ -143,7 +143,7 @@ Once this is done, it is sufficient to click on Connect to be redirected to your
 
 The WRDS data are located in the `/wrds` directory. A list of all WRDS datasets and their file system locations is available [here](https://wrds-web.wharton.upenn.edu/wrds/tools/variable.cfm?_ga=2.114595075.561933824.1556371438-601882553.1555849734)
 
-### Interactive Jobs
+### Monitoring and Managing Jobs
 
 Once an interactive or batch job has been submitted to the WRDS Cloud, it is usually necessary to monitor and manage its status. The following commands allow to do so:
 
@@ -155,7 +155,7 @@ Once an interactive or batch job has been submitted to the WRDS Cloud, it is usu
 * `qhost -j`: Same as above, but also shows jobs per node.
 * `qdel 1234567`: Delete job 1234567
 
-A more detailed explanation of the options provided by the Grid Engine is available [here](http://www.univa.com/resources/files/univa_user_guide_univa__grid_engine_854.pdf).
+More details about the options provided by the Grid Engine are available [here](http://www.univa.com/resources/files/univa_user_guide_univa__grid_engine_854.pdf); more details about monitoring and managing jobs are available [here](https://wrds-www.wharton.upenn.edu/pages/support/the-wrds-cloud/running-jobs/managing-jobs-wrds-cloud/).
 
 # Using Python on Your Computer
 

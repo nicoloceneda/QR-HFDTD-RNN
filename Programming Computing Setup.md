@@ -125,8 +125,6 @@ Now that both files have been created, the wrapper script can be submitted using
 [my_wrds_username@wrds-cloud-login1-h ~]$ qsub my_program.sh
 ```
 
-> The command `qstat` allows to check the status of the job running. If no result is returned, then it means that no job is currently running or queued, i.e. that all jobs have been completed. 
-
 The Grid Engine will then run the batch job and return several output files to the same directory as the wrapper script (as instructed by `#$ -cwd`): a my_program.csv file, which is the output of the Python program; a my_program.sh.o##### file, which is the Grid Engine file that contains all the output from the my_program.sh file; a my_program.sh.e##### file, which contains all the errors of the my_program.sh file. ##### stands for the Grid Engine job number.
 
 > Note that running the program multiple times will overwrite the my_program.csv file with the new output. To avoid this, it is sufficient to rename the initial output with the command `mv my_program.csv new_name.csv`. On the contrary, the Grid Engine output and error files are not overwritten as their name contains the job number, which makes them unique.
@@ -144,6 +142,20 @@ A suggested SFTS browser for Mac is *CyberDuck*, which can be downloaded [here](
 Once this is done, it is sufficient to click on Connect to be redirected to your WRDS Cloud home directory `/home/institution/use`. It is now possible to drag and drop files between the local workstation and the WRDS Cloud, as well as changing directory.
 
 The WRDS data are located in the `/wrds` directory. A list of all WRDS datasets and their file system locations is available [here](https://wrds-web.wharton.upenn.edu/wrds/tools/variable.cfm?_ga=2.114595075.561933824.1556371438-601882553.1555849734)
+
+### Interactive Jobs
+
+Once an interactive or batch job has been submitted to the WRDS Cloud, it is usually necessary to monitor and manage its status. The following commands allow to do so:
+
+* `qstat`: Shows all running and queued jobs submitted by you. If no result is returned, then it means that all jobs have been completed. 
+* `qstat -u \*`: Shows all running and queued jobs submitted by all users.
+* `qstat -j 1234567`: Shows detailed status information about the running job 1234567.
+* `qstat -f`: Shows all available queues and their status (d = disabled for maintenance, a = fully utilized by jobs).
+* `qhost`: Show all computing nodes, including number of processors and amount of RAM per node.
+* `qhost -j`: Same as above, but also shows jobs per node.
+* `qdel 1234567`: Delete job 1234567
+
+A more detailed explanation of the options provided by the Grid Engine is available [here](http://www.univa.com/resources/files/univa_user_guide_univa__grid_engine_854.pdf).
 
 # Using Python on Your Computer
 

@@ -133,6 +133,18 @@ The Grid Engine will then run the batch job and return several output files to t
 
 #### Transferring Files with SFTP
 
+The easiest way to run batch jobs is to create the Python program (.py) and the wrapper shell script (.sh) locally on your local computer and then transfer them to the WRDS Cloud via a *Secure FTP (SFTP)*. This is a remote filesystem browser that allows to manage files across directories on remote servers and to download and upload data betweem the remote server and the local workstation. This is a convenient way to connect to the WRDS Cloud to manage the files contained in the personal home directory and the scratch directory, browse any WRDS data and upload or download anything. 
+
+A suggested SFTS browser for Mac is *CyberDuck*, which can be downloaded [here](https://cyberduck.io). Once the SFTP client has been opened on the local workstation, to connect to WRDS Cloud it is necessary to create a new connection with the following parameters:
+* Server: wrds-cloud.wharton.upenn.edu
+* Port: 22
+* Username: Your WRDS Username
+* Password: Your WRDS Password
+
+Once this is done, it is sufficient to click on Connect to be redirected to your WRDS Cloud home directory `/home/institution/use`. It is now possible to drag and drop files between the local workstation and the WRDS Cloud, as well as changing directory.
+
+The WRDS data are located in the `/wrds` directory. A list of all WRDS datasets and their file system locations is available [here](https://wrds-web.wharton.upenn.edu/wrds/tools/variable.cfm?_ga=2.114595075.561933824.1556371438-601882553.1555849734)
+
 # Using Python on Your Computer
 
 WRDS provides an interface that allows users to query WRDS data when running Python locally. To access the data, which is stored on a PostgreSQL database, WRDS provides the in-house open-source Python module [wrds](https://github.com/wharton/wrds), which is available on [PyPI](https://pypi.org) and which can be installed as follows:

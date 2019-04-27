@@ -103,7 +103,7 @@ The following code creates (using the editor *nano*) the wrapper shell script:
 
 #!/bin/bash
 #$ -cwd
-python3 myProgram.py
+python3 my_program.py
 ```
 
 The above code sets the shell of the wrapper script to `bash`, instructs (with `cwd`) the Grid Engine to look into the current directory for referenced files and to store the output in the same directory, and runs the program `myProgram.py` using Python 3. 

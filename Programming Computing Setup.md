@@ -141,7 +141,7 @@ A suggested SFTS browser for Mac is *CyberDuck*, which can be downloaded [here](
 * Username: Your WRDS Username
 * Password: Your WRDS Password
 
-Once this is done, it is sufficient to click on Connect to be redirected to your WRDS Cloud home directory `/home/institution/use`. It is now possible to drag and drop files between the local workstation and the WRDS Cloud, as well as changing directory.
+Once this is done, it is sufficient to click on Connect to be redirected to your WRDS Cloud home directory `/home/institution/user`. It is now possible to drag and drop files between the local workstation and the WRDS Cloud, as well as changing directory.
 
 The WRDS data are located in the `/wrds` directory. A list of all WRDS datasets and their file system locations is available [here](https://wrds-web.wharton.upenn.edu/wrds/tools/variable.cfm?_ga=2.114595075.561933824.1556371438-601882553.1555849734)
 

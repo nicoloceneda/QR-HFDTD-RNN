@@ -115,7 +115,7 @@ python3 my_program.py
 
 > Note that since the wrapper script is simply a shell script, it supports any UNIX commands. 
 
-The above code sets the shell of the wrapper script to `bash`, instructs (with `cwd`) the Grid Engine to look into the current directory for referenced files and to store the output in the same directory, sends an email to the specified addresss when the job starts and terminates, and runs the program `my_program.py` using Python 3. 
+The above code sets the shell of the wrapper script to `bash`, instructs (with `cwd`) the Grid Engine to look into the current directory for referenced files and to store the output in the same directory, sends an email to the specified address when the job starts and terminates, and runs the program `my_program.py` using Python 3. 
 
 Now that both files have been created, the wrapper script can be submitted using the `qsub` command, as follows:
 

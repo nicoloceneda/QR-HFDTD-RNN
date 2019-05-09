@@ -11,21 +11,23 @@
 # PROGRAM SETUP
 
 
-# Import libraries and/or modules
+# Import the libraries and the modules
 
 import argparse
-import numpy as np
 import pandas as pd
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from pandas.tseries.offsets import CustomBusinessDay
 import matplotlib.pyplot as plt
 
 
-# Define the graphical setup
+# Set the size of the output of pandas objects
 
 pd.set_option('display.max_rows', 10000)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
+
+
+# Create a function to separate the sections in the output file
 
 def section(my_string):
 
@@ -53,7 +55,7 @@ else:
 # COMMAND LINE INTERFACE AND INPUT CHECK
 
 
-# Argument parser
+# Define the commands available in the command line interface
 
 min_start_date = '2003-09-10'
 max_end_date = '2019-05-08'
@@ -76,7 +78,7 @@ parser.add_argument('-on', '--name_output', metavar='', type=str, default='my_ou
 args = parser.parse_args()
 
 
-# Debug
+# Define the debug settings
 
 if args.debug:
 
@@ -98,12 +100,12 @@ else:
           args.start_date, args.end_date, args.start_time, args.end_time))
 
 
-# Create list of symbols:
+# Create the list of the input symbols:
 
 symbol_list = args.symbol_list
 
 
-# Check dates and create list of dates:
+# Check the validity of the input dates and create the list of dates:
 
 if args.start_date > args.end_date:
 
@@ -130,7 +132,7 @@ dates_idx = pd.date_range(start=args.start_date, end=args.end_date, freq=us_busi
 date_list = [str(d)[:10].replace('-', '') for d in dates_idx]
 
 
-# Check times:
+# Check the validity of the input times:
 
 if args.start_time > args.end_time:
 
@@ -153,10 +155,10 @@ elif args.start_time < '{}'.format(min_start_time) and args.end_time > '{}'.form
     exit()
 
 
-# DATA EXTRACTION
+# SUPPORT FUNCTIONS FOR DATA EXTRACTION
 
 
-# Function to run the SQL query and obviate occasional failures:
+# Create a function to run the SQL query and obviate occasional failures:
 
 def query_sql(date_, symbol_, start_time_, end_time_):
 
@@ -187,12 +189,12 @@ def query_sql(date_, symbol_, start_time_, end_time_):
     return None, False
 
 
-def statistics(queried_trades_, symbol_, date_):
+# Create a function to check the min and max number of observations for each queried symbol
+
+def n_obs(queried_trades_, symbol_, date_):
 
     global counter, min_n_obs, min_n_obs_day, max_n_obs, max_n_obs_day
-
     counter += 1
-
     obs = queried_trades_.shape[0]
 
     if counter == 1:
@@ -214,18 +216,18 @@ def statistics(queried_trades_, symbol_, date_):
 
     if date == date_list[-1]:
 
-        statistics_sym = pd.DataFrame({'symbol': [symbol_], 'min n obs': [min_n_obs], 'min n obs day': [min_n_obs_day], 'max n obs': [max_n_obs],
-                                       'max n obs day': [max_n_obs_day]})
-        return statistics_sym
+        n_obs_sym = pd.DataFrame({'symbol': [symbol_], 'min_n_obs': [min_n_obs], 'min_n_obs_day': [min_n_obs_day], 'max_n_obs': [max_n_obs],
+                                       'max_n_obs_day': [max_n_obs_day]})
+        return n_obs_sym
 
 
-# Extract the data and compute statistics
+# Run the SQL queries and compute the min and max number of observations for each queried symbol
 
 warning_queried_trades = []
 warning_query_sql = []
 warning_ctm_date = []
 
-statistics_table = pd.DataFrame({'symbol': [], 'min n obs': [], 'min n obs day': [], 'max n obs': [], 'max n obs day': []})
+n_obs_table = pd.DataFrame({'symbol': [], 'min_n_obs': [], 'min_n_obs_day': [], 'max_n_obs': [], 'max_n_obs_day': []})
 
 output = pd.DataFrame([])
 
@@ -257,20 +259,20 @@ for symbol in symbol_list:
 
                     if output.shape[0] == 0:
 
-                       output = queried_trades
+                        output = queried_trades
 
                     else:
 
                         output = output.append(queried_trades)
+
+                    n_obs_symbol = n_obs(queried_trades, symbol, date)
+                    n_obs_table = n_obs_table.append(n_obs_symbol)
 
                 else:
 
                     print('*** WARNING: Symbol {} did not trade on date {}: the warning has been recorded to "warning_queried_trades".'
                           .format(symbol, pd.to_datetime(date).strftime('%Y-%m-%d')))
                     warning_queried_trades.append('{}+{}'.format(symbol, date))
-
-                statistics_symbol = statistics(queried_trades, symbol, date)
-                statistics_table = statistics_table.append(statistics_symbol)
 
             else:
 
@@ -291,9 +293,9 @@ for symbol in symbol_list:
 # DISPLAY RESULTS
 
 
-# Warning log
+# Display the log of the warnings
 
-section('This is the log of the raised warnings')
+section('Log of the raised warnings')
 
 print('*** LOG: warning_queried_trades:')
 print(warning_queried_trades)
@@ -305,17 +307,18 @@ print('*** LOG: warning_ctm_date:')
 print(warning_ctm_date)
 
 
-# Statistics
+# Display the dataframe of the min and max number of observations for each queried symbol
 
-section('These are the statistics of the queried symbols')
+section('Min and max number of observations for each queried symbol')
 
-print(statistics_table)
+print(n_obs_table)
 
 
-# Queried trades
+# Display the dataframe of the queried data
+
+section('Queried data')
 
 if args.print_output:
-    print()
     print(output)
 
 

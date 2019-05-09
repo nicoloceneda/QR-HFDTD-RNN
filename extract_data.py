@@ -19,14 +19,20 @@ import pandas as pd
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from pandas.tseries.offsets import CustomBusinessDay
 import matplotlib.pyplot as plt
-from colorama import Fore
 
 
-# Choose the setup
+# Define the graphical setup
 
 pd.set_option('display.max_rows', 10000)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
+
+def section(my_string):
+
+    print()
+    print('-----------------------------------------------------------------------------------------------')
+    print('{}'.format(my_string))
+    print('-----------------------------------------------------------------------------------------------')
 
 
 # Establish a connection to the wrds cloud
@@ -50,7 +56,7 @@ else:
 # Argument parser
 
 min_start_date = '2003-09-10'
-max_end_date = '2019-04-30'
+max_end_date = '2019-05-08'
 min_start_time = '09:30'
 max_end_time = '16:00'
 
@@ -74,28 +80,22 @@ args = parser.parse_args()
 
 if args.debug:
 
-    args.symbol_list = ['AAPL', 'GOOG']
-    args.start_date = '2019-03-19'
-    args.end_date = '2019-03-21'
+    args.symbol_list = ['AAPL', 'LYFT']
+    args.start_date = '2019-03-28'
+    args.end_date = '2019-04-05'
     args.start_time = '12:30:00'
-    args.end_time = '12:30:10'
+    args.end_time = '12:30:05'
     args.print_output = True
     args.graph_output = True
     args.save_output = False
 
-    print()
-    print('------------------------')
-    print(Fore.GREEN + 'You are debugging with: symbol_list: {}; start_date: {}; end_date: {}; start_time: {}; end_time: {}'.format(args.symbol_list,
-          args.start_date, args.end_date, args.start_time, args.end_time) + Fore.RESET)
-    print('------------------------')
+    section('You are debugging with: symbol_list: {}; start_date: {}; end_date: {}; start_time: {}; end_time: {}'.format(args.symbol_list,
+          args.start_date, args.end_date, args.start_time, args.end_time))
 
 else:
 
-    print()
-    print('------------------------')
-    print(Fore.GREEN + 'You are querying with: symbol_list: {}; start_date: {}; end_date: {}; start_time: {}; end_time: {}'.format(args.symbol_list,
-          args.start_date, args.end_date, args.start_time, args.end_time) + Fore.RESET)
-    print('------------------------')
+    section('You are querying with: symbol_list: {}; start_date: {}; end_date: {}; start_time: {}; end_time: {}'.format(args.symbol_list,
+          args.start_date, args.end_date, args.start_time, args.end_time))
 
 
 # Create list of symbols:
@@ -107,22 +107,22 @@ symbol_list = args.symbol_list
 
 if args.start_date > args.end_date:
 
-    print(Fore.RED + 'Error: Invalid start and end dates: chose a start date before the end date.' + Fore.RESET)
+    print('*** ERROR: Invalid start and end dates: chose a start date before the end date.')
     exit()
 
 elif args.start_date < '{}'.format(min_start_date) and args.end_date < '{}'.format(max_end_date):
 
-    print(Fore.RED + 'Error: Invalid start date: choose a date after {}.'.format(min_start_date) + Fore.RESET)
+    print('*** ERROR: Invalid start date: choose a date after {}.'.format(min_start_date))
     exit()
 
 elif args.start_date > '{}'.format(min_start_date) and args.end_date > '{}'.format(max_end_date):
 
-    print(Fore.RED + 'Error: Invalid end date: choose a date before {}.'.format(max_end_date) + Fore.RESET)
+    print('*** ERROR: Invalid end date: choose a date before {}.'.format(max_end_date))
     exit()
 
 elif args.start_date < '{}'.format(min_start_date) and args.end_date > '{}'.format(max_end_date):
 
-    print(Fore.RED + 'Error: Invalid start and end dates: choose dates between {} and {}.'.format(min_start_date, max_end_date) + Fore.RESET)
+    print('*** ERROR: Invalid start and end dates: choose dates between {} and {}.'.format(min_start_date, max_end_date))
     exit()
 
 us_businessday = CustomBusinessDay(calendar=USFederalHolidayCalendar())
@@ -134,22 +134,22 @@ date_list = [str(d)[:10].replace('-', '') for d in dates_idx]
 
 if args.start_time > args.end_time:
 
-    print(Fore.RED + 'Error: Invalid start and end times: chose a start time before the end time.' + Fore.RESET)
+    print('*** ERROR: Invalid start and end times: chose a start time before the end time.')
     exit()
 
 elif args.start_time < '{}'.format(min_start_time) and args.end_time < '{}'.format(max_end_time):
 
-    print(Fore.RED + 'Error: Invalid start time: choose a time after {}.'.format(min_start_time) + Fore.RESET)
+    print('*** ERROR: Invalid start time: choose a time after {}.'.format(min_start_time))
     exit()
 
 elif args.start_time > '{}'.format(min_start_time) and args.end_time > '{}'.format(max_end_time):
 
-    print(Fore.RED + 'Error: Invalid end time: choose a time before {}.'.format(max_end_time) + Fore.RESET)
+    print('*** ERROR: Invalid end time: choose a time before {}.'.format(max_end_time))
     exit()
 
 elif args.start_time < '{}'.format(min_start_time) and args.end_time > '{}'.format(max_end_time):
 
-    print(Fore.RED + 'Error: Invalid start and end times: choose times between {} and {}.'.format(min_start_time, max_end_time) + Fore.RESET)
+    print('*** ERROR: Invalid start and end times: choose times between {} and {}.'.format(min_start_time, max_end_time))
     exit()
 
 
@@ -174,11 +174,11 @@ def query_sql(date_, symbol_, start_time_, end_time_):
 
             if attempt < max_attempts - 1:
 
-                print(Fore.MAGENTA + 'Warning: The query failed: trying again.' + Fore.RESET)
+                print('*** WARNING: The query failed: trying again.')
 
             else:
 
-                print(Fore.MAGENTA + 'Warning: The query failed and the max number of attempts has been reached.' + Fore.RESET)
+                print('*** WARNING: The query failed and the max number of attempts has been reached.')
 
         else:
 
@@ -187,14 +187,57 @@ def query_sql(date_, symbol_, start_time_, end_time_):
     return None, False
 
 
-# Extract the data
+def statistics(queried_trades_, symbol_, date_):
+
+    global counter, min_n_obs, min_n_obs_day, max_n_obs, max_n_obs_day
+
+    counter += 1
+
+    obs = queried_trades_.shape[0]
+
+    if counter == 1:
+
+        min_n_obs = obs
+        min_n_obs_day = pd.to_datetime(date_).strftime('%Y-%m-%d')
+        max_n_obs = obs
+        max_n_obs_day = pd.to_datetime(date_).strftime('%Y-%m-%d')
+
+    elif obs < min_n_obs:
+
+        min_n_obs = obs
+        min_n_obs_day = pd.to_datetime(date_).strftime('%Y-%m-%d')
+
+    elif obs > max_n_obs:
+
+        max_n_obs = obs
+        max_n_obs_day = pd.to_datetime(date_).strftime('%Y-%m-%d')
+
+    if date == date_list[-1]:
+
+        statistics_sym = pd.DataFrame({'symbol': [symbol_], 'min n obs': [min_n_obs], 'min n obs day': [min_n_obs_day], 'max n obs': [max_n_obs],
+                                       'max n obs day': [max_n_obs_day]})
+        return statistics_sym
+
+
+# Extract the data and compute statistics
 
 warning_queried_trades = []
 warning_query_sql = []
 warning_ctm_date = []
+
+statistics_table = pd.DataFrame({'symbol': [], 'min n obs': [], 'min n obs day': [], 'max n obs': [], 'max n obs day': []})
+
 output = pd.DataFrame([])
 
+remove_dates = []
+
 for symbol in symbol_list:
+
+    min_n_obs = None
+    min_n_obs_day = None
+    max_n_obs = None
+    max_n_obs_day = None
+    counter = 0
 
     for date in date_list:
 
@@ -222,41 +265,54 @@ for symbol in symbol_list:
 
                 else:
 
-                    print(Fore.MAGENTA + 'Warning: Symbol {} did not trade on date {}: the warning has been recorded to "warning_queried_trades".'
-                          .format(symbol, pd.to_datetime(date).strftime('%Y-%m-%d')) + Fore.RESET)
+                    print('*** WARNING: Symbol {} did not trade on date {}: the warning has been recorded to "warning_queried_trades".'
+                          .format(symbol, pd.to_datetime(date).strftime('%Y-%m-%d')))
                     warning_queried_trades.append('{}+{}'.format(symbol, date))
+
+                statistics_symbol = statistics(queried_trades, symbol, date)
+                statistics_table = statistics_table.append(statistics_symbol)
 
             else:
 
-                print(Fore.MAGENTA + 'Warning: The warning has been recorded to warning_query_sql".' + Fore.RESET)
+                print('*** WARNING: The warning has been recorded to warning_query_sql".')
                 warning_query_sql.append('{}+{}'.format(symbol, date))
 
 
         else:
 
-            print(Fore.MAGENTA + 'Warning: Could not find the table ctm_{} in the table list: the date has been removed from date_list and '
-                  'the warning has been recorded to "warning_ctm_date".'.format(date) + Fore.RESET)
-            date_list.remove(date)
+            print('*** WARNING: Could not find the table ctm_{} in the table list: the date has been removed from date_list; '
+                  'the warning has been recorded to "warning_ctm_date".'.format(date))
+            remove_dates.append(date)
             warning_ctm_date.append(date)
 
+    date_list = [d for d in date_list if d not in remove_dates]
 
-# Display outputs
 
-print('------------------------')
+# DISPLAY RESULTS
 
-print(Fore.MAGENTA + 'warning_queried_trades' + Fore.RESET)
+
+# Warning log
+
+section('This is the log of the raised warnings')
+
+print('*** LOG: warning_queried_trades:')
 print(warning_queried_trades)
-print()
 
-print(Fore.MAGENTA + 'warning_query_sql' + Fore.RESET)
+print('*** LOG: warning_query_sql:')
 print(warning_query_sql)
-print()
 
-print(Fore.MAGENTA + 'warning_ctm_date' + Fore.RESET)
+print('*** LOG: warning_ctm_date:')
 print(warning_ctm_date)
 
-print('------------------------')
-print()
+
+# Statistics
+
+section('These are the statistics of the queried symbols')
+
+print(statistics_table)
+
+
+# Queried trades
 
 if args.print_output:
     print()
@@ -265,12 +321,6 @@ if args.print_output:
 
 # DATA PLOTTING
 
-if args.plot:
-
-    for symbol in symbol_list:
-
-
-        output['price'].plot()
 
 
 # DATA CLEANING
@@ -303,14 +353,14 @@ if args.plot:
 
 # Print the output
 
-if args.print_output:
-    print(output_filtered)
+#    if args.print_output:
+#        print(output_filtered)
 
 
 # Save the output
 
-if args.save_output:
-    output_filtered.to_csv(args.name_output)
+#    if args.save_output:
+#        output_filtered.to_csv(args.name_output)
 
 
 # PROGRAM SETUP
@@ -320,7 +370,8 @@ if args.save_output:
 
 db.close()
 
-print('end')
+print()
+print('END OF EXECUTION')
 
 
 

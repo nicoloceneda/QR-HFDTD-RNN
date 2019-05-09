@@ -19,13 +19,12 @@ import pandas as pd
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from pandas.tseries.offsets import CustomBusinessDay
 import matplotlib.pyplot as plt
-from colorama import *
-init()
+from colorama import Fore
 
 
 # Choose the setup
 
-pd.set_option('display.max_rows', 5000)
+pd.set_option('display.max_rows', 10000)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
@@ -84,14 +83,19 @@ if args.debug:
     args.graph_output = True
     args.save_output = False
 
-    print('You are debugging with: symbol_list: {}; start_date: {}; end_date: {}; start_time: {}; end_time: {}'.format(args.symbol_list,
-          args.start_date, args.end_date, args.start_time, args.end_time))
     print()
+    print('------------------------')
+    print(Fore.GREEN + 'You are debugging with: symbol_list: {}; start_date: {}; end_date: {}; start_time: {}; end_time: {}'.format(args.symbol_list,
+          args.start_date, args.end_date, args.start_time, args.end_time) + Fore.RESET)
+    print('------------------------')
 
 else:
 
-    print('You are querying with: symbol_list: {}; start_date: {}; end_date: {}; start_time: {}; end_time: {}'.format(args.symbol_list,
-          args.start_date, args.end_date, args.start_time, args.end_time))
+    print()
+    print('------------------------')
+    print(Fore.GREEN + 'You are querying with: symbol_list: {}; start_date: {}; end_date: {}; start_time: {}; end_time: {}'.format(args.symbol_list,
+          args.start_date, args.end_date, args.start_time, args.end_time) + Fore.RESET)
+    print('------------------------')
 
 
 # Create list of symbols:
@@ -101,29 +105,25 @@ symbol_list = args.symbol_list
 
 # Check dates and create list of dates:
 
-print(Fore.RED)
-
 if args.start_date > args.end_date:
 
-    print('Error: Invalid start and end dates: chose a start date before the end date.')
+    print(Fore.RED + 'Error: Invalid start and end dates: chose a start date before the end date.' + Fore.RESET)
     exit()
 
 elif args.start_date < '{}'.format(min_start_date) and args.end_date < '{}'.format(max_end_date):
 
-    print(Fore.RED + 'Error: Invalid start date: choose a date after {}.'.format(min_start_date))
+    print(Fore.RED + 'Error: Invalid start date: choose a date after {}.'.format(min_start_date) + Fore.RESET)
     exit()
 
 elif args.start_date > '{}'.format(min_start_date) and args.end_date > '{}'.format(max_end_date):
 
-    print('Error: Invalid end date: choose a date before {}.'.format(max_end_date))
+    print(Fore.RED + 'Error: Invalid end date: choose a date before {}.'.format(max_end_date) + Fore.RESET)
     exit()
 
 elif args.start_date < '{}'.format(min_start_date) and args.end_date > '{}'.format(max_end_date):
 
-    print('Error: Invalid start and end dates: choose dates between {} and {}.'.format(min_start_date, max_end_date))
+    print(Fore.RED + 'Error: Invalid start and end dates: choose dates between {} and {}.'.format(min_start_date, max_end_date) + Fore.RESET)
     exit()
-
-print(Fore.RESET)
 
 us_businessday = CustomBusinessDay(calendar=USFederalHolidayCalendar())
 dates_idx = pd.date_range(start=args.start_date, end=args.end_date, freq=us_businessday)
@@ -132,29 +132,25 @@ date_list = [str(d)[:10].replace('-', '') for d in dates_idx]
 
 # Check times:
 
-print(Fore.RED)
-
 if args.start_time > args.end_time:
 
-    print('Error: Invalid start and end times: chose a start time before the end time.')
+    print(Fore.RED + 'Error: Invalid start and end times: chose a start time before the end time.' + Fore.RESET)
     exit()
 
 elif args.start_time < '{}'.format(min_start_time) and args.end_time < '{}'.format(max_end_time):
 
-    print('Error: Invalid start time: choose a time after {}.'.format(min_start_time))
+    print(Fore.RED + 'Error: Invalid start time: choose a time after {}.'.format(min_start_time) + Fore.RESET)
     exit()
 
 elif args.start_time > '{}'.format(min_start_time) and args.end_time > '{}'.format(max_end_time):
 
-    print('Error: Invalid end time: choose a time before {}.'.format(max_end_time))
+    print(Fore.RED + 'Error: Invalid end time: choose a time before {}.'.format(max_end_time) + Fore.RESET)
     exit()
 
 elif args.start_time < '{}'.format(min_start_time) and args.end_time > '{}'.format(max_end_time):
 
-    print('Error: Invalid start and end times: choose times between {} and {}.'.format(min_start_time, max_end_time))
+    print(Fore.RED + 'Error: Invalid start and end times: choose times between {} and {}.'.format(min_start_time, max_end_time) + Fore.RESET)
     exit()
-
-print(Fore.RESET)
 
 
 # DATA EXTRACTION
@@ -178,11 +174,11 @@ def query_sql(date_, symbol_, start_time_, end_time_):
 
             if attempt < max_attempts - 1:
 
-                print(Fore.MAGENTA + 'Warning: The query failed: trying again.', 'orange' + Fore.RESET)
+                print(Fore.MAGENTA + 'Warning: The query failed: trying again.' + Fore.RESET)
 
             else:
 
-                print(Fore.MAGENTA + 'Warning: The query failed and the max number of attempts has been reached.', 'orange' + Fore.RESET)
+                print(Fore.MAGENTA + 'Warning: The query failed and the max number of attempts has been reached.' + Fore.RESET)
 
         else:
 
@@ -246,20 +242,25 @@ for symbol in symbol_list:
 
 # Display outputs
 
-print()
+print('------------------------')
+
 print(Fore.MAGENTA + 'warning_queried_trades' + Fore.RESET)
 print(warning_queried_trades)
-
 print()
+
 print(Fore.MAGENTA + 'warning_query_sql' + Fore.RESET)
 print(warning_query_sql)
-
 print()
+
 print(Fore.MAGENTA + 'warning_ctm_date' + Fore.RESET)
 print(warning_ctm_date)
 
+print('------------------------')
 print()
-print(output)
+
+if args.print_output:
+    print()
+    print(output)
 
 
 # DATA PLOTTING

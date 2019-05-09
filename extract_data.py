@@ -19,10 +19,11 @@ import pandas as pd
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from pandas.tseries.offsets import CustomBusinessDay
 import matplotlib.pyplot as plt
-from termcolor import colored
+from colorama import *
+init()
 
 
-# Choose settings
+# Choose the setup
 
 pd.set_option('display.max_rows', 5000)
 pd.set_option('display.max_columns', 500)
@@ -91,7 +92,6 @@ else:
 
     print('You are querying with: symbol_list: {}; start_date: {}; end_date: {}; start_time: {}; end_time: {}'.format(args.symbol_list,
           args.start_date, args.end_date, args.start_time, args.end_time))
-    print()
 
 
 # Create list of symbols:
@@ -101,25 +101,29 @@ symbol_list = args.symbol_list
 
 # Check dates and create list of dates:
 
+print(Fore.RED)
+
 if args.start_date > args.end_date:
 
-    print(colored('Error: Invalid start and end dates: chose a start date before the end date.', 'red'))
+    print('Error: Invalid start and end dates: chose a start date before the end date.')
     exit()
 
 elif args.start_date < '{}'.format(min_start_date) and args.end_date < '{}'.format(max_end_date):
 
-    print(colored('Error: Invalid start date: choose a date after {}.'.format(min_start_date), 'red'))
+    print(Fore.RED + 'Error: Invalid start date: choose a date after {}.'.format(min_start_date))
     exit()
 
 elif args.start_date > '{}'.format(min_start_date) and args.end_date > '{}'.format(max_end_date):
 
-    print(colored('Error: Invalid end date: choose a date before {}.'.format(max_end_date), 'red'))
+    print('Error: Invalid end date: choose a date before {}.'.format(max_end_date))
     exit()
 
 elif args.start_date < '{}'.format(min_start_date) and args.end_date > '{}'.format(max_end_date):
 
-    print(colored('Error: Invalid start and end dates: choose dates between {} and {}.'.format(min_start_date, max_end_date), 'red'))
+    print('Error: Invalid start and end dates: choose dates between {} and {}.'.format(min_start_date, max_end_date))
     exit()
+
+print(Fore.RESET)
 
 us_businessday = CustomBusinessDay(calendar=USFederalHolidayCalendar())
 dates_idx = pd.date_range(start=args.start_date, end=args.end_date, freq=us_businessday)
@@ -128,25 +132,29 @@ date_list = [str(d)[:10].replace('-', '') for d in dates_idx]
 
 # Check times:
 
+print(Fore.RED)
+
 if args.start_time > args.end_time:
 
-    print(colored('Error: Invalid start and end times: chose a start time before the end time.', 'red'))
+    print('Error: Invalid start and end times: chose a start time before the end time.')
     exit()
 
 elif args.start_time < '{}'.format(min_start_time) and args.end_time < '{}'.format(max_end_time):
 
-    print(colored('Error: Invalid start time: choose a time after {}.'.format(min_start_time), 'red'))
+    print('Error: Invalid start time: choose a time after {}.'.format(min_start_time))
     exit()
 
 elif args.start_time > '{}'.format(min_start_time) and args.end_time > '{}'.format(max_end_time):
 
-    print(colored('Error: Invalid end time: choose a time before {}.'.format(max_end_time), 'red'))
+    print('Error: Invalid end time: choose a time before {}.'.format(max_end_time))
     exit()
 
 elif args.start_time < '{}'.format(min_start_time) and args.end_time > '{}'.format(max_end_time):
 
-    print('Error: Invalid start and end times: choose times between {} and {}.'.format(min_start_time, max_end_time), 'red')
+    print('Error: Invalid start and end times: choose times between {} and {}.'.format(min_start_time, max_end_time))
     exit()
+
+print(Fore.RESET)
 
 
 # DATA EXTRACTION
@@ -170,11 +178,11 @@ def query_sql(date_, symbol_, start_time_, end_time_):
 
             if attempt < max_attempts - 1:
 
-                print(colored('Warning: The query failed: trying again.', 'orange'))
+                print(Fore.MAGENTA + 'Warning: The query failed: trying again.', 'orange' + Fore.RESET)
 
             else:
 
-                print(colored('Warning: The query failed and the max number of attempts has been reached.', 'orange'))
+                print(Fore.MAGENTA + 'Warning: The query failed and the max number of attempts has been reached.', 'orange' + Fore.RESET)
 
         else:
 
@@ -185,9 +193,9 @@ def query_sql(date_, symbol_, start_time_, end_time_):
 
 # Extract the data
 
-error_queried_trades = []
-error_query_sql = []
-error_ctm_date = []
+warning_queried_trades = []
+warning_query_sql = []
+warning_ctm_date = []
 output = pd.DataFrame([])
 
 for symbol in symbol_list:
@@ -218,33 +226,38 @@ for symbol in symbol_list:
 
                 else:
 
-                    print(colored('Warning: Symbol {} did not trade on date {}: the error has been recorded to "error_queried_trades".'
-                                  .format(symbol, pd.to_datetime(date).strftime('%Y-%m-%d')), 'orange'))
-                    error_queried_trades.append('{}+{}'.format(symbol, date))
+                    print(Fore.MAGENTA + 'Warning: Symbol {} did not trade on date {}: the warning has been recorded to "warning_queried_trades".'
+                          .format(symbol, pd.to_datetime(date).strftime('%Y-%m-%d')) + Fore.RESET)
+                    warning_queried_trades.append('{}+{}'.format(symbol, date))
 
             else:
 
-                print(colored('Warning: The warning has been recorded to "error_query_sql".', 'orange'))
-                error_query_sql.append('{}+{}'.format(symbol, date))
+                print(Fore.MAGENTA + 'Warning: The warning has been recorded to warning_query_sql".' + Fore.RESET)
+                warning_query_sql.append('{}+{}'.format(symbol, date))
+
 
         else:
 
-            print(colored('Warning: Could not find the table ctm_{} in the table list: the date has been removed from date_list and the error '
-                          'has been recorded to "error_ctm_date".'.format(date), 'orange'))
+            print(Fore.MAGENTA + 'Warning: Could not find the table ctm_{} in the table list: the date has been removed from date_list and '
+                  'the warning has been recorded to "warning_ctm_date".'.format(date) + Fore.RESET)
             date_list.remove(date)
-            error_ctm_date.append(date)
+            warning_ctm_date.append(date)
 
 
 # Display outputs
 
-print(colored('error_queried_trades', 'orange'))
-print(error_queried_trades)
 print()
-print(colored('error_query_sql', 'orange'))
-print(error_query_sql)
+print(Fore.MAGENTA + 'warning_queried_trades' + Fore.RESET)
+print(warning_queried_trades)
+
 print()
-print(colored('error_ctm_date', 'orange'))
-print(error_ctm_date)
+print(Fore.MAGENTA + 'warning_query_sql' + Fore.RESET)
+print(warning_query_sql)
+
+print()
+print(Fore.MAGENTA + 'warning_ctm_date' + Fore.RESET)
+print(warning_ctm_date)
+
 print()
 print(output)
 

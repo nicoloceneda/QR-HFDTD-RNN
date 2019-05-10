@@ -15,8 +15,7 @@
 
 import argparse
 import pandas as pd
-from pandas.tseries.holiday import USFederalHolidayCalendar
-from pandas.tseries.offsets import CustomBusinessDay
+import pandas_market_calendars as mcal
 import matplotlib.pyplot as plt
 
 
@@ -82,11 +81,11 @@ args = parser.parse_args()
 
 if args.debug:
 
-    args.symbol_list = ['AAPL', 'LYFT']
+    args.symbol_list = ['AAPL', 'LYFT', 'GOOG']
     args.start_date = '2019-03-28'
     args.end_date = '2019-04-05'
     args.start_time = '12:30:00'
-    args.end_time = '12:30:05'
+    args.end_time = '12:30:04'
     args.print_output = True
     args.graph_output = True
     args.save_output = False
@@ -127,9 +126,9 @@ elif args.start_date < '{}'.format(min_start_date) and args.end_date > '{}'.form
     print('*** ERROR: Invalid start and end dates: choose dates between {} and {}.'.format(min_start_date, max_end_date))
     exit()
 
-us_businessday = CustomBusinessDay(calendar=USFederalHolidayCalendar())
-dates_idx = pd.date_range(start=args.start_date, end=args.end_date, freq=us_businessday)
-date_list = [str(d)[:10].replace('-', '') for d in dates_idx]
+nyse = mcal.get_calendar('NYSE')
+nyse_cal = nyse.schedule(start_date='2018-01-01', end_date='2018-12-31')
+date_list = [str(d)[:10].replace('-', '') for d in nyse_cal.index]
 
 
 # Check the validity of the input times:
@@ -324,7 +323,16 @@ if args.print_output:
 
 # DATA PLOTTING
 
+# TODO: Addition of dividend and/or split adjustments
 
+# TODO: Filter the data as outlined in the CF File Description Section 3.2
+
+# TODO: Check for different classes of shares (ex. GOOG and GOOG L)
+
+# TODO: Calculation of statistics such as the opening and closing prices from the primary market, the high and low from the consolidated
+#  market, share volume from the primary market, and consolidated share volume.
+
+# TODO: Plot the charts.
 
 # DATA CLEANING
 

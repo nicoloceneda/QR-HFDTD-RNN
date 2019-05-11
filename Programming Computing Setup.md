@@ -147,7 +147,7 @@ The WRDS data are located in the `/wrds` directory. A list of all WRDS datasets 
 
 ### Installing Python Packages
 
-Although WRDS Cloud comes with many pre-installed Python packages, it also allows to install new packages in the WRDS Cloud home directory. These packages are then accessible both via interactive and batch jobs, by managing these packages within a *virtualenv*. 
+Although WRDS Cloud comes with many pre-installed Python packages, it also allows to install new packages (or different versions of the pre-installed ones) in the WRDS Cloud home directory. These packages are then accessible via interactive and batch jobs, by managing these packages within a *virtualenv*. 
 
 ### Monitoring and Managing Jobs
 

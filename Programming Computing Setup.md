@@ -147,7 +147,42 @@ The WRDS data are located in the `/wrds` directory. A list of all WRDS datasets 
 
 ### Installing Python Packages
 
-Although WRDS Cloud comes with many pre-installed Python packages, it also allows to install new packages (or different versions of the pre-installed ones) in the WRDS Cloud home directory. These packages are then accessible via interactive and batch jobs, by managing these packages within a *virtualenv*. 
+Although WRDS Cloud comes with many pre-installed Python packages, it also allows to install new packages (or different versions of the pre-installed ones) to make them available for interactive and batch jobs. 
+
+```
+# Display the list of pre-installed Python packages (from Terminal):
+
+my_laptop:my_directory my_name$ ssh my_wrds_username@wrds-cloud.wharton.upenn.edu
+my_wrds_username@wrds-cloud.wharton.upenn.edu's password:
+[my_wrds_username@wrds-cloud-login1-h ~]$ pip3 list
+```
+
+To install a new package on the WRDS Cloud it is necessary to execute three sequential commands to create a *virtualenv* in the WRDS Cloud home directory from one of the head nodes, activate the *virtualenv*, and download the package needed using `pip`. Note that since the computing nodes are not internet-accessible, it is necessary to use the two head nodes to upload packages to the WRDS Cloud home directory. However, once uploaded, these packages can also be used on the computing nodes.
+
+```
+# Installed a Python package (from Terminal):
+
+my_laptop:my_directory my_name$ ssh my_wrds_username@wrds-cloud.wharton.upenn.edu
+my_wrds_username@wrds-cloud.wharton.upenn.edu's password:
+[my_wrds_username@wrds-cloud-login1-h ~]$ virtualenv3 --system-site-packages ~/virtualenv
+[my_wrds_username@wrds-cloud-login1-h ~]$ source ~/virtualenv/bin/activate
+(virtualenv) [my_wrds_username@wrds-cloud-login1-h ~]$ pip3 install your_package
+```
+
+#### Interactive Jobs
+
+Each time you want to use the newly installed package in an interactive job, it is sufficient to start an interactive session from a WRDS Cloud head node, activate the *virtualenv* created in the section above, and then start the interactive job. 
+
+```
+# Activate the virtualenv (from Terminal):
+
+[my_wrds_username@wrds-cloud-login1-h ~]$ qrsh
+[my_wrds_username@wrds-sas5-h ~]$ source ~/virtualenv/bin/activate
+(virtualenv) [my_wrds_username@wrds-sas5-h ~]$ ipython3
+In [1]: import your_package
+```
+> To disconnect from ipython3, type `quit`; to deactivate the *virtualenv* type `deactivate`; to disconnect from the interactive session type `logout`.
+
 
 ### Monitoring and Managing Jobs
 

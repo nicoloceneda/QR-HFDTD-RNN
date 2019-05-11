@@ -127,7 +127,7 @@ elif args.start_date < '{}'.format(min_start_date) and args.end_date > '{}'.form
     exit()
 
 nyse = mcal.get_calendar('NYSE')
-nyse_cal = nyse.schedule(start_date='2018-01-01', end_date='2018-12-31')
+nyse_cal = nyse.schedule(start_date=args.start_date, end_date=args.end_date)
 date_list = [str(d)[:10].replace('-', '') for d in nyse_cal.index]
 
 
@@ -242,12 +242,13 @@ for symbol in symbol_list:
 
     for date in date_list:
 
+        print('Running a query with: symbol: {}, date: {}, start_time: {}; end_time: {}.'.format(symbol, pd.to_datetime(date)
+              .strftime('%Y-%m-%d'), args.start_time, args.end_time))
+
         all_tables = db.list_tables(library='taqm_{}'.format(date[:4]))
 
         if ('ctm_' + date) in all_tables:
 
-            print('Running a query with: symbol: {}, date: {}, start_time: {}; end_time: {}.'. format(symbol, pd.to_datetime(date)
-                  .strftime('%Y-%m-%d'), args.start_time, args.end_time))
             queried_trades, success_query_sql = query_sql(date, symbol, args.start_time, args.end_time)
 
             if success_query_sql:

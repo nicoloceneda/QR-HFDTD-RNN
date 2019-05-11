@@ -1,4 +1,4 @@
-# Using Python on the WRDS Cloud
+# 1 - Using Python on the WRDS Cloud
 
 WRDS Cloud is a high-performance computing cluster to write and execute elaborated programs. It supports a wide variety of programming languages, including Python, and it offers access to all WRDS data. It is composed of 2 head nodes and a grid of 30 computing nodes. More information is available in the [Introduction to the WRDS Cloud](https://wrds-www.wharton.upenn.edu/pages/support/the-wrds-cloud/introduction-wrds-cloud/). 
 
@@ -52,13 +52,9 @@ In [1]: import wrds
 In [2]: db = wrds.Connection()
 ```
 
-Now the setup is complete and it is possible to start working on jobs. 
+Now the setup is complete and it is possible to start working on jobs. There are two types of jobs that can be submitted on the WRDS Cloud: interactive jobs, which are executed line-by-line and immediately return a response to each command, like in a Python console; batch jobs, which are longer programs executed as a whole, like in a Python run. The former are more useful for exploration and testing, while the latter are more useful for elaborated, multi-step programs. Both types of jobs are scheduled and managed by the Grid Engine, which is a distributed resource management system that optimizes job execution for large high-performance computing clusters by distributing job submissions to the least-busy computing node. 
 
-## Interactive and Batch Jobs on WRDS Cloud
-
-There are two types of jobs that can be submitted on the WRDS Cloud: interactive jobs, which are executed line-by-line and immediately return a response to each command, like in a Python console; batch jobs, which are longer programs executed as a whole, like in a Python run. The former are more useful for exploration and testing, while the latter are more useful for elaborated, multi-step programs. Both types of jobs are scheduled and managed by the Grid Engine, which is a distributed resource management system that optimizes job execution for large high-performance computing clusters by distributing job submissions to the least-busy computing node. 
-
-### Interactive Jobs
+## 1.1 - Interactive Jobs
 
 To run interactive jobs, it is necessary to schedule an interactive job with the WRDS Cloud Grid Engine. As with all jobs on the WRDS Cloud, batch jobs are submitted from one of the head nodes and run on one of the computing nodes. 
 
@@ -82,7 +78,7 @@ In [4]: quit
 
 The above code creates a `SSH` connection to wrds-cloud.wharton.upenn.edu, submits the interactive job to the Grid Engine, which assigns a computing node (in this case number 5), starts an interactive Python session, imports the `wrds` module, initiates a connection to WRDS, which uses the crdentials in the *pgpass* file, and runs a SQL query.
 
-### Batch Jobs
+## 1.2 - Batch Jobs
 
 To run batch jobs two files are needed: a Python program (.py) to be executed and a wrapper shell script (.sh) to be submitted to the Grid Engine to specify the software to use and the program to run. It is this wrapper script that is submitted to Grid Engine, not research program. More precisely, as with all jobs on the WRDS Cloud, batch jobs are submitted from one of the head nodes and run on one of the computing nodes. 
 
@@ -131,7 +127,7 @@ The Grid Engine will then run the batch job and return several output files to t
 
 > Note that running the program multiple times will overwrite the my_program.csv file with the new output. To avoid this, it is sufficient to rename the initial output with the command `mv my_program.csv new_name.csv`. On the contrary, the Grid Engine output and error files are not overwritten as their name contains the job number, which makes them unique.
 
-#### Transferring Files with SFTP
+### 1.2.1 - Transferring Files with SFTP
 
 The easiest way to run batch jobs is to create the Python program (.py) and the wrapper shell script (.sh) locally on your local computer and then transfer them to the WRDS Cloud via a *Secure FTP (SFTP)*. This is a remote filesystem browser that allows to manage files across directories on remote servers and to download and upload data betweem the remote server and the local workstation. This is a convenient way to connect to the WRDS Cloud to manage the files contained in the personal home directory and the scratch directory, browse any WRDS data and upload or download anything. 
 
@@ -145,7 +141,7 @@ Once this is done, it is sufficient to click on Connect to be redirected to your
 
 The WRDS data are located in the `/wrds` directory. A list of all WRDS datasets and their file system locations is available [here](https://wrds-web.wharton.upenn.edu/wrds/tools/variable.cfm?_ga=2.114595075.561933824.1556371438-601882553.1555849734)
 
-### Installing Python Packages
+## 1.3 - Installing Python Packages
 
 Although WRDS Cloud comes with many pre-installed Python packages, it also allows to install new packages (or different versions of the pre-installed ones) to make them available for interactive and batch jobs. 
 
@@ -169,7 +165,7 @@ my_wrds_username@wrds-cloud.wharton.upenn.edu's password:
 (virtualenv) [my_wrds_username@wrds-cloud-login1-h ~]$ pip3 install your_package
 ```
 
-#### Interactive Jobs
+### 1.3.1 - Interactive Jobs
 
 Each time you want to use the newly installed package in an interactive job, it is sufficient to start an interactive session from a WRDS Cloud head node, activate the *virtualenv* created in the section above, and then start the interactive job. 
 
@@ -183,7 +179,7 @@ In [1]: import your_package
 ```
 > To disconnect from ipython3, type `quit`; to deactivate the *virtualenv* type `deactivate`; to disconnect from the interactive session type `logout`.
 
-#### Batch Jobs
+### 1.3.2 - Batch Jobs
 
 Instead, to use the newly installed package in a batch job, it is sufficient to write the Python script as usual (making use of the package needed), include a line to activate the *virtualenv* in the wrapper script (before Python is called), and submit the wrapper script. The following code illustrates how to modify the wrapper sript. 
 
@@ -198,7 +194,7 @@ source ~/virtualenv/bin/activate
 python3 my_program.py
 ```
 
-### Monitoring and Managing Jobs
+### 1.4 - Monitoring and Managing Jobs
 
 Once an interactive or batch job has been submitted to the WRDS Cloud, it is usually necessary to monitor and manage its status. The following commands allow to do so:
 
@@ -212,7 +208,7 @@ Once an interactive or batch job has been submitted to the WRDS Cloud, it is usu
 
 More details about the options provided by the Grid Engine are available [here](http://www.univa.com/resources/files/univa_user_guide_univa__grid_engine_854.pdf); more details about monitoring and managing jobs are available [here](https://wrds-www.wharton.upenn.edu/pages/support/the-wrds-cloud/running-jobs/managing-jobs-wrds-cloud/).
 
-# Using Python on Your Computer
+# 2 - Using Python on Your Computer
 
 WRDS provides an interface that allows users to query WRDS data when running Python locally. To access the data, which is stored on a PostgreSQL database, WRDS provides the in-house open-source Python module [wrds](https://github.com/wharton/wrds), which is available on [PyPI](https://pypi.org) and which can be installed as follows:
 

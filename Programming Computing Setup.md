@@ -145,6 +145,10 @@ Once this is done, it is sufficient to click on Connect to be redirected to your
 
 The WRDS data are located in the `/wrds` directory. A list of all WRDS datasets and their file system locations is available [here](https://wrds-web.wharton.upenn.edu/wrds/tools/variable.cfm?_ga=2.114595075.561933824.1556371438-601882553.1555849734)
 
+### Installing Python Packages
+
+Although WRDS Cloud comes with many pre-installed Python packages, it also allows to install new packages in the WRDS Cloud home directory. These packages are then accessible using both interactive and batch jobs by managing these packages within a virtualenv. 
+
 ### Monitoring and Managing Jobs
 
 Once an interactive or batch job has been submitted to the WRDS Cloud, it is usually necessary to monitor and manage its status. The following commands allow to do so:

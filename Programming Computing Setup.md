@@ -183,6 +183,20 @@ In [1]: import your_package
 ```
 > To disconnect from ipython3, type `quit`; to deactivate the *virtualenv* type `deactivate`; to disconnect from the interactive session type `logout`.
 
+#### Batch Jobs
+
+Instead, to use the newly installed package in a batch job, it is sufficient to write the Python script as usual (making use of the package needed), include a line to activate the *virtualenv* in the wrapper script (before Python is called), and submit the wrapper script. The following code illustrates how to modify the wrapper sript. 
+
+```
+# Activate the virtualenv in the wrapper shell script (.sh file):
+
+#!/bin/bash
+#$ -cwd
+#$ -m abe
+#$ -M my_email_address
+source ~/virtualenv/bin/activate
+python3 my_program.py
+```
 
 ### Monitoring and Managing Jobs
 

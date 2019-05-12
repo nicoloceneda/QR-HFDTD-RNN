@@ -195,15 +195,15 @@ def query_sql(date_, symbol_, start_time_, end_time_):
     return None, False
 
 
-# Create a function to check the min and max number of observations for each queried symbol
+# Create a function to check the min and max number of observations for each symbol
 
 def n_obs(queried_trades_, date_):
 
-    global counter, min_n_obs, min_n_obs_day, max_n_obs, max_n_obs_day
-    counter += 1
+    global count_2, min_n_obs, min_n_obs_day, max_n_obs, max_n_obs_day
+    count_2 += 1
     obs = queried_trades_.shape[0]
 
-    if counter == 1:
+    if count_2 == 1:
 
         min_n_obs = obs
         n_obs_table.loc[count_1, 'min_n_obs'] = min_n_obs
@@ -245,9 +245,9 @@ for count_1, symbol in enumerate(symbol_list):
     max_n_obs = None
     max_n_obs_day = None
     n_obs_table.loc[count_1, 'symbol'] = symbol
-    counter = 0
+    count_2 = 0
 
-    for date in date_list:   # 0, 1,
+    for date in date_list:    
 
         print('Running a query with: symbol: {}, date: {}, start_time: {}; end_time: {}.'.format(symbol, pd.to_datetime(date)
               .strftime('%Y-%m-%d'), args.start_time, args.end_time))
@@ -295,11 +295,6 @@ for count_1, symbol in enumerate(symbol_list):
     date_list = [d for d in date_list if d not in remove_dates]
 
 
-# ------------------------------------------------------------------------------------------------------------------------------------------
-# DISPLAY RESULTS
-# ------------------------------------------------------------------------------------------------------------------------------------------
-
-
 # Display the log of the warnings
 
 section('Log of the raised warnings')
@@ -314,19 +309,24 @@ print('*** LOG: warning_query_sql:')
 print(warning_query_sql)
 
 
-# Display the dataframe of the min and max number of observations for each queried symbol
+# Display the dataframe with the min and max number of observations for each symbol
 
 section('Min and max number of observations for each queried symbol')
 
 print(n_obs_table)
 
 
-# Display the dataframe of the queried data
+# Display the dataframe of the queried trades
 
 section('Queried data')
 
 if args.print_output:
     print(output)
+
+
+# ------------------------------------------------------------------------------------------------------------------------------------------
+# DATA CLEANING
+# ------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # DATA PLOTTING
@@ -345,25 +345,13 @@ if args.print_output:
 # DATA CLEANING
 
 
-# Clean data
+# Clean data: only NYSE,
 
-def clean_trades(output_, k = 5):
+def clean_trades(output_):
 
-    length = [output_.shape[0]]
+    output_ = output_[(output_['tr_corr'] == '00') & (output_['tr_scond'] != 'Z')]
 
-    output_ = output_[output_['tr_corr'] == '00']
-    length.append(output_.shape[0])
-
-    output_ = output_[output_['tr_scond'] != 'Z']
-    length.append(output_.shape[0])
-
-    output_['outliers'] = np.absolute(output_['price'] - output_['price'].rolling(k, center=True).mean())
-
-    return output_, length
-
-
-output_filtered, length = clean_trades(output)
-print('The cleaning process shrunk the dataset as follows: original: {} -> after corr: {} -> after cond: {}'.format(length[0], length[1], length[2]))
+    return output_
 
 
 # DATA PRINTING AND SAVING
@@ -389,7 +377,7 @@ print('The cleaning process shrunk the dataset as follows: original: {} -> after
 db.close()
 
 print()
-print('END OF EXECUTION')
+print('End of Execution')
 
 
 

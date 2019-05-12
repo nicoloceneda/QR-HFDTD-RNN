@@ -1,14 +1,16 @@
 """ extract_data.py
     ---------------
-    This script constructs the command line interface which is used to extracts trade data for selected dates, symbols and times from the
-    wrds database.
+    This script constructs the command line interface which is used to extract and clean trade data for selected symbols, dates and times
+    from the wrds database.
 
     Contact: nicolo.ceneda@student.unisg.ch
     Last update: 03 May 2019
 
 """
 
+# ------------------------------------------------------------------------------------------------------------------------------------------
 # PROGRAM SETUP
+# ------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # Import the libraries and the modules
@@ -19,7 +21,7 @@ import pandas_market_calendars as mcal
 import matplotlib.pyplot as plt
 
 
-# Set the size of the output of pandas objects
+# Set the displayed size of pandas objects
 
 pd.set_option('display.max_rows', 10000)
 pd.set_option('display.max_columns', 500)
@@ -51,24 +53,26 @@ else:
     db = wrds.Connection()
 
 
+# ------------------------------------------------------------------------------------------------------------------------------------------
 # COMMAND LINE INTERFACE AND INPUT CHECK
+# ------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # Define the commands available in the command line interface
 
 min_start_date = '2003-09-10'
-max_end_date = '2019-05-08'
+max_end_date = '2019-05-10'
 min_start_time = '09:30'
 max_end_time = '16:00'
 
-parser = argparse.ArgumentParser(description='Command-line interface to extract the data')
+parser = argparse.ArgumentParser(description='Command-line interface to extract trade data')
 
 parser.add_argument('-sl', '--symbol_list', metavar='', type=str, default=['AAPL'], nargs='+', help='List of symbols to extract.')
 parser.add_argument('-sd', '--start_date', metavar='', type=str, default='{}'.format(min_start_date), help='Start date to extract the data.')
 parser.add_argument('-ed', '--end_date', metavar='', type=str, default='{}'.format(max_end_date), help='End date to extract the data.')
 parser.add_argument('-st', '--start_time', metavar='', type=str, default='{}'.format(min_start_time), help='Start time to extract the data.')
-parser.add_argument('-et', '--end_time', metavar='', type=str, default='{}'.format(max_end_time), help='End time to extract the data.')     # TODO: check default times
-parser.add_argument('-bg', '--debug', action='store_true', help='Flag to debug a single symbol; other params are set.')
+parser.add_argument('-et', '--end_time', metavar='', type=str, default='{}'.format(max_end_time), help='End time to extract the data.')
+parser.add_argument('-bg', '--debug', action='store_true', help='Flag to debug the program.')
 parser.add_argument('-po', '--print_output', action='store_true', help='Flag to print the output.')
 parser.add_argument('-go', '--graph_output', action='store_true', help='Flag to graph the output.')
 parser.add_argument('-so', '--save_output', action='store_true', help='Flag to store the output.')
@@ -81,7 +85,7 @@ args = parser.parse_args()
 
 if args.debug:
 
-    args.symbol_list = ['AAPL', 'LYFT', 'GOOG']
+    args.symbol_list = ['AAPL', 'LYFT', 'GOOG', 'JPM']
     args.start_date = '2019-03-28'
     args.end_date = '2019-04-05'
     args.start_time = '12:30:00'
@@ -128,7 +132,8 @@ elif args.start_date < '{}'.format(min_start_date) and args.end_date > '{}'.form
 
 nyse = mcal.get_calendar('NYSE')
 nyse_cal = nyse.schedule(start_date=args.start_date, end_date=args.end_date)
-date_list = [str(d)[:10].replace('-', '') for d in nyse_cal.index]
+date_index = nyse_cal.index
+date_list = [str(d)[:10].replace('-', '') for d in date_index]
 
 
 # Check the validity of the input times:
@@ -154,7 +159,9 @@ elif args.start_time < '{}'.format(min_start_time) and args.end_time > '{}'.form
     exit()
 
 
-# SUPPORT FUNCTIONS FOR DATA EXTRACTION
+# ------------------------------------------------------------------------------------------------------------------------------------------
+# DATA EXTRACTION
+# ------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # Create a function to run the SQL query and obviate occasional failures:
@@ -190,7 +197,7 @@ def query_sql(date_, symbol_, start_time_, end_time_):
 
 # Create a function to check the min and max number of observations for each queried symbol
 
-def n_obs(queried_trades_, symbol_, date_):
+def n_obs(queried_trades_, date_):
 
     global counter, min_n_obs, min_n_obs_day, max_n_obs, max_n_obs_day
     counter += 1
@@ -199,25 +206,24 @@ def n_obs(queried_trades_, symbol_, date_):
     if counter == 1:
 
         min_n_obs = obs
-        min_n_obs_day = pd.to_datetime(date_).strftime('%Y-%m-%d')
+        n_obs_table.loc[count_1, 'min_n_obs'] = min_n_obs
+        n_obs_table.loc[count_1, 'min_n_obs_day'] = pd.to_datetime(date_).strftime('%Y-%m-%d')
+
         max_n_obs = obs
-        max_n_obs_day = pd.to_datetime(date_).strftime('%Y-%m-%d')
+        n_obs_table.loc[count_1, 'max_n_obs'] = max_n_obs
+        n_obs_table.loc[count_1, 'max_n_obs_day'] = pd.to_datetime(date_).strftime('%Y-%m-%d')
 
     elif obs < min_n_obs:
 
         min_n_obs = obs
-        min_n_obs_day = pd.to_datetime(date_).strftime('%Y-%m-%d')
+        n_obs_table.loc[count_1, 'min_n_obs'] = min_n_obs
+        n_obs_table.loc[count_1, 'min_n_obs_day'] = pd.to_datetime(date_).strftime('%Y-%m-%d')
 
     elif obs > max_n_obs:
 
         max_n_obs = obs
-        max_n_obs_day = pd.to_datetime(date_).strftime('%Y-%m-%d')
-
-    if date == date_list[-1]:
-
-        n_obs_sym = pd.DataFrame({'symbol': [symbol_], 'min_n_obs': [min_n_obs], 'min_n_obs_day': [min_n_obs_day], 'max_n_obs': [max_n_obs],
-                                       'max_n_obs_day': [max_n_obs_day]})
-        return n_obs_sym
+        n_obs_table.loc[count_1, 'max_n_obs'] = max_n_obs
+        n_obs_table.loc[count_1, 'max_n_obs_day'] = pd.to_datetime(date_).strftime('%Y-%m-%d')
 
 
 # Run the SQL queries and compute the min and max number of observations for each queried symbol
@@ -232,15 +238,16 @@ output = pd.DataFrame([])
 
 remove_dates = []
 
-for symbol in symbol_list:
+for count_1, symbol in enumerate(symbol_list):
 
     min_n_obs = None
     min_n_obs_day = None
     max_n_obs = None
     max_n_obs_day = None
+    n_obs_table.loc[count_1, 'symbol'] = symbol
     counter = 0
 
-    for date in date_list:
+    for date in date_list:   # 0, 1,
 
         print('Running a query with: symbol: {}, date: {}, start_time: {}; end_time: {}.'.format(symbol, pd.to_datetime(date)
               .strftime('%Y-%m-%d'), args.start_time, args.end_time))
@@ -257,16 +264,15 @@ for symbol in symbol_list:
 
                     print('Appending the queried trades to the output.')
 
-                    if output.shape[0] == 0:
-
-                        output = queried_trades
-
-                    else:
+                    if output.shape[0] > 0:
 
                         output = output.append(queried_trades)
 
-                    n_obs_symbol = n_obs(queried_trades, symbol, date)
-                    n_obs_table = n_obs_table.append(n_obs_symbol)
+                    else:
+
+                        output = queried_trades
+
+                    n_obs(queried_trades, date)
 
                 else:
 
@@ -279,7 +285,6 @@ for symbol in symbol_list:
                 print('*** WARNING: The warning has been recorded to warning_query_sql".')
                 warning_query_sql.append('{}+{}'.format(symbol, date))
 
-
         else:
 
             print('*** WARNING: Could not find the table ctm_{} in the table list: the date has been removed from date_list; '
@@ -290,7 +295,9 @@ for symbol in symbol_list:
     date_list = [d for d in date_list if d not in remove_dates]
 
 
+# ------------------------------------------------------------------------------------------------------------------------------------------
 # DISPLAY RESULTS
+# ------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # Display the log of the warnings
@@ -300,11 +307,11 @@ section('Log of the raised warnings')
 print('*** LOG: warning_queried_trades:')
 print(warning_queried_trades)
 
-print('*** LOG: warning_query_sql:')
-print(warning_query_sql)
-
 print('*** LOG: warning_ctm_date:')
 print(warning_ctm_date)
+
+print('*** LOG: warning_query_sql:')
+print(warning_query_sql)
 
 
 # Display the dataframe of the min and max number of observations for each queried symbol
@@ -340,24 +347,23 @@ if args.print_output:
 
 # Clean data
 
+def clean_trades(output_, k = 5):
 
-#    def clean_trades(output_, k = 5):
+    length = [output_.shape[0]]
 
-#        length = [output_.shape[0]]
+    output_ = output_[output_['tr_corr'] == '00']
+    length.append(output_.shape[0])
 
-#        output_ = output_[output_['tr_corr'] == '00']
-#        length.append(output_.shape[0])
+    output_ = output_[output_['tr_scond'] != 'Z']
+    length.append(output_.shape[0])
 
-#        output_ = output_[output_['tr_scond'] != 'Z']
-#        length.append(output_.shape[0])
+    output_['outliers'] = np.absolute(output_['price'] - output_['price'].rolling(k, center=True).mean())
 
-#        output_['outliers'] = np.absolute(output_['price'] - output_['price'].rolling(k, center=True).mean())
-
-#        return output_, length
+    return output_, length
 
 
-#    output_filtered, length = clean_trades(output)
-#    print('The cleaning process shrunk the dataset as follows: original: {} -> after corr: {} -> after cond: {}'.format(length[0], length[1], length[2]))
+output_filtered, length = clean_trades(output)
+print('The cleaning process shrunk the dataset as follows: original: {} -> after corr: {} -> after cond: {}'.format(length[0], length[1], length[2]))
 
 
 # DATA PRINTING AND SAVING

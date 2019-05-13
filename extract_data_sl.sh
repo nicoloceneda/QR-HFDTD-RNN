@@ -3,5 +3,6 @@
 #$ -m abe
 #$ -M nicolo.ceneda@student.unisg.ch
 source ~/virtualenv/bin/activate
-python3 extract_data.py -sl GOOGL -sd 2019-03-28 -ed 2019-04-05 -st 12:30:00 -et 12:30:04 -po
+python3 extract_data.py -sl FB -sd 2019-03-28 -ed 2019-03-28 -st 10:30:00 -et 11:30:04 -po -go
+
 

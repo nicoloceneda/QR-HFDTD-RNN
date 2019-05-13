@@ -130,9 +130,9 @@ elif args.start_date < '{}'.format(min_start_date) and args.end_date > '{}'.form
     print('*** ERROR: Invalid start and end dates: choose dates between {} and {}.'.format(min_start_date, max_end_date))
     exit()
 
-nyse = mcal.get_calendar('NYSE')
-nyse_cal = nyse.schedule(start_date=args.start_date, end_date=args.end_date)
-date_index = nyse_cal.index
+nasdaq = mcal.get_calendar('NASDAQ')
+nasdaq_cal = nasdaq.schedule(start_date=args.start_date, end_date=args.end_date)
+date_index = nasdaq_cal.index
 date_list = [str(d)[:10].replace('-', '') for d in date_index]
 
 
@@ -324,6 +324,23 @@ if args.print_output:
     print(output)
 
 
+# Display the plots of the queried trades
+
+if args.graph_output:
+
+    for symbol in symbol_list:
+
+        x = output.loc[output['sym_root'] == symbol, 'time_m']
+        y = output.loc[output['sym_root'] == symbol, 'price']
+
+        xy = pd.DataFrame({'price': y})
+        xy = xy.set_index(x)
+
+        plt.figure()
+        xy.plot(style='k+')
+        plt.savefig('{}.png'.format(symbol))
+
+
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # DATA CLEANING
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -349,12 +366,13 @@ if args.print_output:
 
 def clean_trades(output_):
 
-    output_ = output_[(output_['tr_corr'] == '00') & (output_['tr_scond'] != 'Z')]
+    output_ = output_[(output_.loc[:, 'tr_corr'] == '00') & (output_.loc[:, 'tr_scond'] != 'Z')]
 
     return output_
 
 
 # DATA PRINTING AND SAVING
+
 
 
 # Print the output

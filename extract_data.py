@@ -85,11 +85,11 @@ args = parser.parse_args()
 
 if args.debug:
 
-    args.symbol_list = ['AAPL', 'LYFT', 'GOOG', 'JPM']
+    args.symbol_list = ['AAPL',  'GOOG', 'LYFT', 'TSLA']
     args.start_date = '2019-03-28'
     args.end_date = '2019-04-05'
-    args.start_time = '12:30:00'
-    args.end_time = '12:30:04'
+    args.start_time = '10:30:00'
+    args.end_time = '10:34:00'
     args.print_output = True
     args.graph_output = True
     args.save_output = False
@@ -324,26 +324,48 @@ if args.print_output:
     print(output)
 
 
+# ------------------------------------------------------------------------------------------------------------------------------------------
+# DATA PLOTTING
+# ------------------------------------------------------------------------------------------------------------------------------------------
+
+
+# Create a function to display the plots of the queried trades
+
+def graph_output(output_, symbol_list_, date_index_):
+
+    if args.graph_output:
+
+        for symbol in symbol_list_:
+
+            x = output_.loc[(output_.loc[:, 'sym_root'] == symbol) & (pd.to_datetime(output_.loc[:, 'date']) == date_index_[-1]), 'time_m']
+            y = output_.loc[(output_.loc[:, 'sym_root'] == symbol) & (pd.to_datetime(output_.loc[:, 'date']) == date_index_[-1]), 'price']
+
+            xy = pd.DataFrame({'price': y})
+            xy = xy.set_index(x)
+
+            plt.figure()
+            xy.plot(style='k+')
+            plt.savefig('{}.png'.format(symbol))
+
+
 # Display the plots of the queried trades
 
-if args.graph_output:
-
-    for symbol in symbol_list:
-
-        x = output.loc[output['sym_root'] == symbol, 'time_m']
-        y = output.loc[output['sym_root'] == symbol, 'price']
-
-        xy = pd.DataFrame({'price': y})
-        xy = xy.set_index(x)
-
-        plt.figure()
-        xy.plot(style='k+')
-        plt.savefig('{}.png'.format(symbol))
+graph_output(output, symbol_list, date_index)
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # DATA CLEANING
 # ------------------------------------------------------------------------------------------------------------------------------------------
+
+
+# Create a function to clean the queried trades
+
+def clean_trades(output_):
+
+    tr_corr_con = output_.loc[:, 'tr_corr'] == '00'
+    tr_scond_con = output_.loc
+
+    return output_
 
 
 # DATA PLOTTING
@@ -364,11 +386,7 @@ if args.graph_output:
 
 # Clean data: only NYSE,
 
-def clean_trades(output_):
 
-    output_ = output_[(output_.loc[:, 'tr_corr'] == '00') & (output_.loc[:, 'tr_scond'] != 'Z')]
-
-    return output_
 
 
 # DATA PRINTING AND SAVING

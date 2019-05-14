@@ -13,5 +13,5 @@ The repository *Thesis* contains the following files:
 * **extract_data_sl.sh**: Wrapper script to execute extract_data.py in 'symbol_list' mode.
 * **nasdaq100.xlsx**: List of securities extracted
 
-![TSLA](https://user-images.githubusercontent.com/47401951/57646137-2c5d6680-75c0-11e9-8eb1-ac7db5c7193c.png)
+![TSLA_1](https://user-images.githubusercontent.com/47401951/57727868-d6a5be80-7692-11e9-8e98-91404e2d7414.png)
 

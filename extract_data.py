@@ -62,8 +62,8 @@ else:
 
 min_start_date = '2003-09-10'
 max_end_date = '2019-05-10'
-min_start_time = '09:30'
-max_end_time = '16:00'
+min_start_time = '09:30:00'
+max_end_time = '16:00:00'
 
 parser = argparse.ArgumentParser(description='Command-line interface to extract trade data')
 
@@ -85,11 +85,11 @@ args = parser.parse_args()
 
 if args.debug:
 
-    args.symbol_list = ['AAPL',  'GOOG', 'LYFT', 'TSLA']
+    args.symbol_list = ['GOOG', 'LYFT', 'TSLA']
     args.start_date = '2019-03-28'
     args.end_date = '2019-04-05'
     args.start_time = '10:30:00'
-    args.end_time = '10:34:00'
+    args.end_time = '10:32:00'
     args.print_output = True
     args.graph_output = True
     args.save_output = False
@@ -295,6 +295,9 @@ for count_1, symbol in enumerate(symbol_list):
     date_list = [d for d in date_list if d not in remove_dates]
 
 
+output = output.set_index(pd.Index(range(output.shape[0]), dtype='int64'))
+
+
 # Display the log of the warnings
 
 section('Log of the raised warnings')
@@ -318,10 +321,15 @@ print(n_obs_table)
 
 # Display the dataframe of the queried trades
 
+section('Queried data')
+
 if args.print_output:
 
-    section('Queried data')
     print(output)
+
+else:
+
+    print('"Print output" is not active')
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -333,24 +341,24 @@ if args.print_output:
 
 def graph_output(output_, symbol_list_, date_index_):
 
-    if args.graph_output:
+    for symbol in symbol_list_:
 
-        for symbol in symbol_list_:
+        x = output_.loc[(output_.loc[:, 'sym_root'] == symbol) & (pd.to_datetime(output_.loc[:, 'date']) == date_index_[-1]), 'time_m']
+        y = output_.loc[(output_.loc[:, 'sym_root'] == symbol) & (pd.to_datetime(output_.loc[:, 'date']) == date_index_[-1]), 'price']
 
-            x = output_.loc[(output_.loc[:, 'sym_root'] == symbol) & (pd.to_datetime(output_.loc[:, 'date']) == date_index_[-1]), 'time_m']
-            y = output_.loc[(output_.loc[:, 'sym_root'] == symbol) & (pd.to_datetime(output_.loc[:, 'date']) == date_index_[-1]), 'price']
+        xy = pd.DataFrame({'price': y})
+        xy = xy.set_index(x)
 
-            xy = pd.DataFrame({'price': y})
-            xy = xy.set_index(x)
-
-            plt.figure()
-            xy.plot(style='k+')
-            plt.savefig('{}.png'.format(symbol))
+        plt.figure()
+        xy.plot(linewidth=0.1)
+        plt.savefig('{}.png'.format(symbol))
 
 
 # Display the plots of the queried trades
 
-graph_output(output, symbol_list, date_index)
+if args.graph_output:
+
+    graph_output(output, symbol_list, date_index)
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -376,7 +384,7 @@ def clean_trades(output_):
 
     for row in range(output_.shape[0]):
 
-        element = output_.iloc[row, 5].replace(" ", "")
+        element = output_.loc[row, 'tr_scond'].replace(" ", "")
 
         if any((char in char_forbidden) for char in element) & all((char in char_recognized) for char in element):
 
@@ -408,13 +416,21 @@ def clean_trades(output_):
 output_filter = clean_trades(output)
 
 
-# Display the cleaned dataframe
+# Display the cleaned dataframe of the queried trades
 
-if args.print_output and (initial_length > final_length):
+section('Cleaned data')
 
-    section('Cleaned data')
+if initial_length > final_length:
+
     print('The dataset has been shrunk from {} obs to {} obs'.format(initial_length, final_length))
-    print(output_filter)
+
+    if args.print_output:
+
+        print(output_filter)
+
+    else:
+
+        print('"Print output" is not active')
 
 else:
 

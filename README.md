@@ -4,7 +4,7 @@
 *Contact*: nicolo.ceneda@student.unisg.ch \
 *Institution*: University of St Gallen \
 *Course*: Master of Banking and Finance \
-*Last update*: 12 May 2019
+*Last update*: 15 May 2019
 
 The repository *Thesis* contains the following files:
 * **Programming and Computing Setup.md**: Detailed explanation of the programming and computing setup required to execute the programs. 

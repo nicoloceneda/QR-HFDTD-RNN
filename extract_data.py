@@ -362,6 +362,8 @@ graph_output(output, symbol_list, date_index)
 
 def clean_trades(output_):
 
+    global initial_length, final_length
+
     initial_length = output_.shape[0]
 
     tr_corr_check = pd.Series(output_['tr_corr'] == '00')
@@ -374,7 +376,7 @@ def clean_trades(output_):
 
     for row in range(output_.shape[0]):
 
-        element = output_.iloc[row, 1].replace(" ", "")
+        element = output_.iloc[row, 5].replace(" ", "")
 
         if any((char in char_forbidden) for char in element) & all((char in char_recognized) for char in element):
 
@@ -398,28 +400,26 @@ def clean_trades(output_):
 
     final_length = output_.shape[0]
 
-    if initial_length > final_length:
-
-        print('The dataset has been shrunk from {} obs to {} obs'.format(initial_length, final_length))
-
-    else:
-
-        print('No forbidden or unrecognized "tr_corr" and "tr_scond" have been identified.')
-
     return output_
 
 
 # Clean the data
 
-output = clean_trades(output)
+output_filter = clean_trades(output)
 
 
 # Display the cleaned dataframe
 
-if args.print_output:
+if args.print_output and (initial_length > final_length):
 
     section('Cleaned data')
-    print(output)
+    print('The dataset has been shrunk from {} obs to {} obs'.format(initial_length, final_length))
+    print(output_filter)
+
+else:
+
+    print('No forbidden or unrecognized "tr_corr" and "tr_scond" have been identified.')
+
 
 
 # DATA PLOTTING

@@ -318,9 +318,9 @@ print(n_obs_table)
 
 # Display the dataframe of the queried trades
 
-section('Queried data')
-
 if args.print_output:
+
+    section('Queried data')
     print(output)
 
 
@@ -358,14 +358,56 @@ graph_output(output, symbol_list, date_index)
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 
-# Create a function to clean the queried trades
+# Create a function to check the queried trades for 'tr_corr' and 'tr_scond'
 
 def clean_trades(output_):
 
-    tr_corr_con = output_.loc[:, 'tr_corr'] == '00'
-    tr_scond_con = output_.loc
+    tr_corr_check = pd.Series(output_['tr_corr'] == '00')
+
+    tr_scond_check = pd.Series([])
+    char_allowed = {'@', 'A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'K', 'M', 'N', 'O', 'Q', 'R', 'S', 'V', 'W', 'Y', '1', '4', '5', '6', '7', '8', '9'}
+    char_forbidden = {'G', 'L', 'P', 'T', 'U', 'X', 'Z'}
+    char_recognized = char_allowed | char_forbidden
+    char_unseen = []
+
+    for row in range(output_.shape[0]):
+
+        element = output_.iloc[row, 1].replace(" ", "")
+
+        if any((char in char_forbidden) for char in element) & all((char in char_recognized) for char in element):
+
+            tr_scond_check.loc[row] = False
+
+        elif all((char in char_allowed) for char in element):
+
+            tr_scond_check.loc[row] = True
+
+        elif any((char not in char_recognized) for char in element):
+
+            tr_scond_check.loc[row] = False
+            char_unseen.append(row)
+
+    if len(char_unseen) > 0:
+
+        print('*** LOG: rows with unseen conditions:')
+        print(char_unseen)
+
+    output_ = output_[tr_corr_check & tr_scond_check]
 
     return output_
+
+
+# Clean the data
+
+output = clean_trades(output)
+
+
+# Display the cleaned dataframe
+
+if args.print_output:
+
+    section('Cleaned data')
+    print(output)
 
 
 # DATA PLOTTING
@@ -380,13 +422,6 @@ def clean_trades(output_):
 #  market, share volume from the primary market, and consolidated share volume.
 
 # TODO: Plot the charts.
-
-# DATA CLEANING
-
-
-# Clean data: only NYSE,
-
-
 
 
 # DATA PRINTING AND SAVING

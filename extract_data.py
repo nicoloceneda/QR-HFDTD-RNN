@@ -362,6 +362,8 @@ graph_output(output, symbol_list, date_index)
 
 def clean_trades(output_):
 
+    initial_length = output_.shape[0]
+
     tr_corr_check = pd.Series(output_['tr_corr'] == '00')
 
     tr_scond_check = pd.Series([])
@@ -393,6 +395,16 @@ def clean_trades(output_):
         print(char_unseen)
 
     output_ = output_[tr_corr_check & tr_scond_check]
+
+    final_length = output_.shape[0]
+
+    if initial_length > final_length:
+
+        print('The dataset has been shrunk from {} obs to {} obs'.format(initial_length, final_length))
+
+    else:
+
+        print('No forbidden or unrecognized "tr_corr" and "tr_scond" have been identified.')
 
     return output_
 

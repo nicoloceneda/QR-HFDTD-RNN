@@ -350,7 +350,7 @@ def graph_output(output_, symbol_list_, date_index_):
         xy = xy.set_index(x)
 
         plt.figure()
-        plt.plot(xy, color='k', linewidth=0.1)
+        plt.plot(xy, color='b', linewidth=0.1)
         plt.title('{}'.format(symbol))
         plt.savefig('{}.png'.format(symbol))
 
@@ -414,17 +414,6 @@ def clean_time_trades(output_):
 
 # Create a function to check the queried trades for outliers
 
-def clean_heuristic_trades(output_):
-
-    output_
-
-    for row in range(output_.shape[0]):
-
-
-        time_span =
-        k = num_trades_
-
-    return output_
 
 
 # Clean the data

@@ -350,7 +350,8 @@ def graph_output(output_, symbol_list_, date_index_):
         xy = xy.set_index(x)
 
         plt.figure()
-        xy.plot(linewidth=0.1)
+        plt.plot(xy, color='k', linewidth=0.1)
+        plt.title('{}'.format(symbol))
         plt.savefig('{}.png'.format(symbol))
 
 
@@ -368,7 +369,7 @@ if args.graph_output:
 
 # Create a function to check the queried trades for 'tr_corr' and 'tr_scond'
 
-def clean_trades(output_):
+def clean_time_trades(output_):
 
     global initial_length, final_length
 
@@ -411,9 +412,24 @@ def clean_trades(output_):
     return output_
 
 
+# Create a function to check the queried trades for outliers
+
+def clean_heuristic_trades(output_):
+
+    output_
+
+    for row in range(output_.shape[0]):
+
+
+        time_span =
+        k = num_trades_
+
+    return output_
+
+
 # Clean the data
 
-output_filter = clean_trades(output)
+output_filter = clean_time_trades(output)
 
 
 # Display the cleaned dataframe of the queried trades
@@ -434,7 +450,14 @@ if initial_length > final_length:
 
 else:
 
-    print('No forbidden or unrecognized "tr_corr" and "tr_scond" have been identified.')
+    print('No forbidden or unrecognized "tr_corr" and "tr_scond" have been identified, therefore the trades are not re-printed.')
+
+
+# Display the plots of the queried trades
+
+if args.graph_output:
+
+    graph_output(output_filter, symbol_list, date_index)
 
 
 
@@ -451,21 +474,6 @@ else:
 
 # TODO: Plot the charts.
 
-
-# DATA PRINTING AND SAVING
-
-
-
-# Print the output
-
-#    if args.print_output:
-#        print(output_filtered)
-
-
-# Save the output
-
-#    if args.save_output:
-#        output_filtered.to_csv(args.name_output)
 
 
 # PROGRAM SETUP

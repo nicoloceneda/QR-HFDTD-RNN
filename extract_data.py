@@ -20,7 +20,6 @@ import numpy as np
 import pandas as pd
 import pandas_market_calendars as mcal
 import matplotlib.pyplot as plt
-from scipy import stats
 
 
 # Set the displayed size of pandas objects
@@ -341,7 +340,7 @@ else:
 
 # Create a function to display the plots of the queried trades
 
-def graph_output(output_, symbol_list_, date_index_):
+def graph_output(output_, symbol_list_, date_index_, usage):
 
     for symbol in symbol_list_:
 
@@ -353,15 +352,15 @@ def graph_output(output_, symbol_list_, date_index_):
 
         plt.figure()
         plt.plot(xy, color='b', linewidth=0.1)
-        plt.title('{}'.format(symbol))
-        plt.savefig('{}.png'.format(symbol))
+        plt.title('{}_{}'.format(symbol, usage))
+        plt.savefig('{}_{}.png'.format(symbol, usage))
 
 
 # Display the plots of the queried trades
 
 if args.graph_output:
 
-    graph_output(output, symbol_list, date_index)
+    graph_output(output, symbol_list, date_index, 1)
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -529,6 +528,13 @@ if args.graph_output:
 # Clean the data from outliers
 
 output_filter_2 = clean_heuristic_trades(output_filter_1)
+
+
+# Display the plots of the queried trades
+
+if args.graph_output:
+
+    graph_output(output_filter_2, symbol_list, date_index)
 
 
 # DATA PLOTTING

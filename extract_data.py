@@ -16,9 +16,11 @@
 # Import the libraries and the modules
 
 import argparse
+import numpy as np
 import pandas as pd
 import pandas_market_calendars as mcal
 import matplotlib.pyplot as plt
+from scipy import stats
 
 
 # Set the displayed size of pandas objects
@@ -414,11 +416,86 @@ def clean_time_trades(output_):
 
 # Create a function to check the queried trades for outliers
 
+def clean_heuristic_trades(output_):
+
+    delta = 0.1
+    k_list = np.arange(21, 181, 20, dtype='int64')
+    y_list = np.arange(0.01, 0.06, 0.01)
+    k_grid, y_grid = np.meshgrid(k_list, y_list)
+    ky_array = np.array([k_grid.ravel(), y_grid.ravel()]).T
+
+    outlier_num_final = []
+    not_outlier_final = pd.Series([])
+    k_final = []
+    y_final = []
+
+    for symbol in symbol_list:
+
+        count_1 = 0
+
+        for k, y in ky_array:
+
+            count_1 += 1
+            outlier_num_sym = 0
+            not_outlier_sym = pd.Series([])
+
+            for date in date_list:
+
+                price_sym_day = output_.loc[(output_.loc[:, 'sym_root'] == symbol) & (pd.to_datetime(output_.loc[:, 'date']) == pd.to_datetime(date)), 'price']
+                price_sym_day_mean = pd.Series(index=list(range(price_sym_day.shape[0])))
+                price_sym_day_std = pd.Series(index=list(range(price_sym_day.shape[0])))
+
+                range_start = int((k - 1)/2)
+                range_end = int(price_sym_day.shape[0] - (k - 1) / 2)
+
+                for window_center in range(range_start, range_end):
+
+                    window_start = window_center - range_start
+                    window_end = window_center + range_start + 1
+                    rolling_window = price_sym_day.iloc[window_start:window_end]
+                    rolling_window_trimmed = rolling_window[(rolling_window > rolling_window.quantile(delta)) & (rolling_window < rolling_window.quantile(1-delta))]
+                    price_sym_day_mean.iloc[window_center] = rolling_window_trimmed.mean()
+                    price_sym_day_std.iloc[window_center] = rolling_window_trimmed.std()
+
+                price_sym_day_mean.iloc[:range_start] = price_sym_day_mean.iloc[range_start]
+                price_sym_day_mean.iloc[range_end:] = price_sym_day_mean.iloc[range_end - 1]
+
+                price_sym_day_std.iloc[:range_start] = price_sym_day_std.iloc[range_start]
+                price_sym_day_std.iloc[range_end:] = price_sym_day_std.iloc[range_end - 1]
+
+                outlier_con_sym_day = (price_sym_day - price_sym_day_mean).abs() > 3 * price_sym_day_std + y
+                outlier_num_sym_day = outlier_con_sym_day.sum()
+                outlier_num_sym += outlier_num_sym_day
+                not_outlier_con_sym_day = pd.Series((price_sym_day - price_sym_day_mean).abs() < 3 * price_sym_day_std + y)
+                not_outlier_sym = not_outlier_sym.append(not_outlier_con_sym_day)
+
+            if count_1 == 1:
+
+                outlier_num_sym_final = outlier_num_sym
+                not_outlier_sym_final = not_outlier_sym
+                k_sym_final = k
+                y_sym_final = y
+
+            elif outlier_num_sym > outlier_num_sym_final:
+
+                outlier_num_sym_final = outlier_num_sym
+                not_outlier_sym_final = not_outlier_sym
+                k_sym_final = k
+                y_sym_final = y
+
+        outlier_num_final.append(outlier_num_sym_final)
+        not_outlier_final = not_outlier_final.append(not_outlier_sym_final)
+        k_final.append(k_sym_final)
+        y_final.append(y_sym_final)
+
+    output_ = output_[not_outlier_final]
+
+    return output_
 
 
-# Clean the data
+# Clean the data from unwanted 'tr_corr' and 'tr_scond'
 
-output_filter = clean_time_trades(output)
+output_filter_1 = clean_time_trades(output)
 
 
 # Display the cleaned dataframe of the queried trades
@@ -431,7 +508,7 @@ if initial_length > final_length:
 
     if args.print_output:
 
-        print(output_filter)
+        print(output_filter_1)
 
     else:
 
@@ -446,8 +523,12 @@ else:
 
 if args.graph_output:
 
-    graph_output(output_filter, symbol_list, date_index)
+    graph_output(output_filter_1, symbol_list, date_index)
 
+
+# Clean the data from outliers
+
+output_filter_2 = clean_heuristic_trades(output_filter_1)
 
 
 # DATA PLOTTING

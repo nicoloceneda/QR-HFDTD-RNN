@@ -4,9 +4,10 @@
     from the wrds database.
 
     Contact: nicolo.ceneda@student.unisg.ch
-    Last update: 03 May 2019
+    Last update: 17 May 2019
 
 """
+
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # PROGRAM SETUP
@@ -22,21 +23,16 @@ import pandas_market_calendars as mcal
 import matplotlib.pyplot as plt
 
 
+# Import the functions from the functions file
+
+from extract_data_functions import section, graph_output, reset_index
+
+
 # Set the displayed size of pandas objects
 
 pd.set_option('display.max_rows', 10000)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
-
-
-# Create a function to separate the sections in the output file
-
-def section(my_string):
-
-    print()
-    print('-----------------------------------------------------------------------------------------------')
-    print('{}'.format(my_string))
-    print('-----------------------------------------------------------------------------------------------')
 
 
 # Establish a connection to the wrds cloud
@@ -86,11 +82,11 @@ args = parser.parse_args()
 
 if args.debug:
 
-    args.symbol_list = ['GOOG', 'LYFT', 'TSLA']
+    args.symbol_list = ['AAPL', 'TSLA']
     args.start_date = '2019-03-28'
-    args.end_date = '2019-04-05'
-    args.start_time = '10:30:00'
-    args.end_time = '10:32:00'
+    args.end_date = '2019-03-29'
+    args.start_time = '09:38:00'
+    args.end_time = '09:48:00'
     args.print_output = True
     args.graph_output = True
     args.save_output = False
@@ -295,8 +291,14 @@ for count_1, symbol in enumerate(symbol_list):
 
     date_list = [d for d in date_list if d not in remove_dates]
 
+# Reset index:
 
-output = output.set_index(pd.Index(range(output.shape[0]), dtype='int64'))
+# TODO: output = reset_index(output)
+
+
+# ------------------------------------------------------------------------------------------------------------------------------------------
+# DISPLAY THE RESULTS OF DATA EXTRACTION
+# ------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # Display the log of the warnings
@@ -333,34 +335,11 @@ else:
     print('"Print output" is not active')
 
 
-# ------------------------------------------------------------------------------------------------------------------------------------------
-# DATA PLOTTING
-# ------------------------------------------------------------------------------------------------------------------------------------------
-
-
-# Create a function to display the plots of the queried trades
-
-def graph_output(output_, symbol_list_, date_index_, usage):
-
-    for symbol in symbol_list_:
-
-        x = output_.loc[(output_.loc[:, 'sym_root'] == symbol) & (pd.to_datetime(output_.loc[:, 'date']) == date_index_[-1]), 'time_m']
-        y = output_.loc[(output_.loc[:, 'sym_root'] == symbol) & (pd.to_datetime(output_.loc[:, 'date']) == date_index_[-1]), 'price']
-
-        xy = pd.DataFrame({'price': y})
-        xy = xy.set_index(x)
-
-        plt.figure()
-        plt.plot(xy, color='b', linewidth=0.1)
-        plt.title('{}_{}'.format(symbol, usage))
-        plt.savefig('{}_{}.png'.format(symbol, usage))
-
-
 # Display the plots of the queried trades
 
 if args.graph_output:
 
-    graph_output(output, symbol_list, date_index, 1)
+    graph_output(output, symbol_list, date_index, 'unfiltered')
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -372,11 +351,7 @@ if args.graph_output:
 
 def clean_time_trades(output_):
 
-    global initial_length, final_length
-
-    initial_length = output_.shape[0]
-
-    tr_corr_check = pd.Series(output_['tr_corr'] == '00')
+    tr_corr_check = output_['tr_corr'] == '00'
 
     tr_scond_check = pd.Series([])
     char_allowed = {'@', 'A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'K', 'M', 'N', 'O', 'Q', 'R', 'S', 'V', 'W', 'Y', '1', '4', '5', '6', '7', '8', '9'}
@@ -384,7 +359,7 @@ def clean_time_trades(output_):
     char_recognized = char_allowed | char_forbidden
     char_unseen = []
 
-    for row in range(output_.shape[0]):
+    for row in output_.index:
 
         element = output_.loc[row, 'tr_scond'].replace(" ", "")
 
@@ -408,27 +383,23 @@ def clean_time_trades(output_):
 
     output_ = output_[tr_corr_check & tr_scond_check]
 
-    final_length = output_.shape[0]
-
     return output_
 
 
 # Create a function to check the queried trades for outliers
 
-def clean_heuristic_trades(output_):
+def clean_heuristic_trades(output_, symbol_list_, date_list_):
 
     delta = 0.1
-    k_list = np.arange(21, 181, 20, dtype='int64')
-    y_list = np.arange(0.01, 0.06, 0.01)
+    k_list = np.arange(41, 121, 20, dtype='int64')
+    y_list = np.arange(0.02, 0.08, 0.02)
     k_grid, y_grid = np.meshgrid(k_list, y_list)
     ky_array = np.array([k_grid.ravel(), y_grid.ravel()]).T
 
-    outlier_num_final = []
-    not_outlier_final = pd.Series([])
-    k_final = []
-    y_final = []
+    outlier_frame = pd.DataFrame(columns=['out_num_max', 'k_max', 'y_max', 'score_max', 'out_num_min', 'k_min', 'y_min', 'score_min'], index=symbol_list_)
+    not_outlier_series = pd.Series([])
 
-    for symbol in symbol_list:
+    for symbol in symbol_list_:
 
         count_1 = 0
 
@@ -436,21 +407,23 @@ def clean_heuristic_trades(output_):
 
             count_1 += 1
             outlier_num_sym = 0
+            outlier_val_sym = 0
             not_outlier_sym = pd.Series([])
 
-            for date in date_list:
+            for date in date_list_:
 
-                price_sym_day = output_.loc[(output_.loc[:, 'sym_root'] == symbol) & (pd.to_datetime(output_.loc[:, 'date']) == pd.to_datetime(date)), 'price']
-                price_sym_day_mean = pd.Series(index=list(range(price_sym_day.shape[0])))
-                price_sym_day_std = pd.Series(index=list(range(price_sym_day.shape[0])))
+                price_sym_day = output_.loc[(output_['sym_root'] == symbol) & (pd.to_datetime(output_['date']) == pd.to_datetime(date)), 'price'] # 30 40
+                price_sym_day = reset_index(price_sym_day) # 0 9
+                price_sym_day_mean = pd.Series(index=price_sym_day.index)
+                price_sym_day_std = pd.Series(index=price_sym_day.index)
 
-                range_start = int((k - 1)/2)
-                range_end = int(price_sym_day.shape[0] - (k - 1) / 2)
+                range_start = int((k - 1)/2) # 20
+                range_end = int(price_sym_day.shape[0] - (k - 1) / 2) #
 
                 for window_center in range(range_start, range_end):
 
-                    window_start = window_center - range_start
-                    window_end = window_center + range_start + 1
+                    window_start = window_center - range_start # 0 1 2 3
+                    window_end = window_center + range_start + 1 # 41 42 43
                     rolling_window = price_sym_day.iloc[window_start:window_end]
                     rolling_window_trimmed = rolling_window[(rolling_window > rolling_window.quantile(delta)) & (rolling_window < rolling_window.quantile(1-delta))]
                     price_sym_day_mean.iloc[window_center] = rolling_window_trimmed.mean()
@@ -458,97 +431,98 @@ def clean_heuristic_trades(output_):
 
                 price_sym_day_mean.iloc[:range_start] = price_sym_day_mean.iloc[range_start]
                 price_sym_day_mean.iloc[range_end:] = price_sym_day_mean.iloc[range_end - 1]
-
                 price_sym_day_std.iloc[:range_start] = price_sym_day_std.iloc[range_start]
                 price_sym_day_std.iloc[range_end:] = price_sym_day_std.iloc[range_end - 1]
 
                 outlier_con_sym_day = (price_sym_day - price_sym_day_mean).abs() > 3 * price_sym_day_std + y
                 outlier_num_sym_day = outlier_con_sym_day.sum()
                 outlier_num_sym += outlier_num_sym_day
+
+                outlier_val_sym_day = (price_sym_day - price_sym_day_mean).abs()
+                outlier_val_sym += (outlier_val_sym_day[outlier_con_sym_day]).sum()
+
                 not_outlier_con_sym_day = pd.Series((price_sym_day - price_sym_day_mean).abs() < 3 * price_sym_day_std + y)
                 not_outlier_sym = not_outlier_sym.append(not_outlier_con_sym_day)
 
             if count_1 == 1:
 
-                outlier_num_sym_final = outlier_num_sym
-                not_outlier_sym_final = not_outlier_sym
-                k_sym_final = k
-                y_sym_final = y
+                outlier_frame.loc[symbol, ['out_num_max', 'out_num_min']] = outlier_num_sym
+                outlier_frame.loc[symbol, ['score_max', 'score_min']] = outlier_val_sym / outlier_num_sym
+                outlier_frame.loc[symbol, ['k_max', 'k_min']] = k
+                outlier_frame.loc[symbol, ['y_max', 'y_min']] = y
+                not_outlier_sym_min, not_outlier_sym_max = not_outlier_sym, not_outlier_sym
 
-            elif outlier_num_sym > outlier_num_sym_final:
+            elif outlier_num_sym < outlier_frame.loc[symbol, 'out_num_min']:
 
-                outlier_num_sym_final = outlier_num_sym
-                not_outlier_sym_final = not_outlier_sym
-                k_sym_final = k
-                y_sym_final = y
+                outlier_frame.loc[symbol, 'out_num_min'] = outlier_num_sym
+                outlier_frame.loc[symbol, 'score_min'] = outlier_val_sym / outlier_num_sym
+                outlier_frame.loc[symbol, 'k_min'] = k
+                outlier_frame.loc[symbol, 'y_min'] = y
+                not_outlier_sym_min = not_outlier_sym
 
-        outlier_num_final.append(outlier_num_sym_final)
-        not_outlier_final = not_outlier_final.append(not_outlier_sym_final)
-        k_final.append(k_sym_final)
-        y_final.append(y_sym_final)
+            elif outlier_num_sym > outlier_frame.loc[symbol, 'out_num_max']:
 
-    output_ = output_[not_outlier_final]
+                outlier_frame.loc[symbol, 'out_num_max'] = outlier_num_sym
+                outlier_frame.loc[symbol, 'score_max'] = outlier_val_sym / outlier_num_sym
+                outlier_frame.loc[symbol, 'k_max'] = k
+                outlier_frame.loc[symbol, 'y_max'] = y
+                not_outlier_sym_max = not_outlier_sym
 
-    return output_
+        if outlier_frame.loc[symbol, 'score_min'] > outlier_frame.loc[symbol, 'score_max']:
+
+            not_outlier_series = not_outlier_series.append(not_outlier_sym_min)
+
+        else:
+
+            not_outlier_series = not_outlier_series.append(not_outlier_sym_max)
+
+    not_outlier_series = reset_index(not_outlier_series)
+    output_cleaned = output_[not_outlier_series]
+
+    return output_cleaned
+
+
+# ------------------------------------------------------------------------------------------------------------------------------------------
+# DISPLAY THE RESULTS OF DATA CLEANING
+# ------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # Clean the data from unwanted 'tr_corr' and 'tr_scond'
 
-output_filter_1 = clean_time_trades(output)
+output_filtered_1 = clean_time_trades(output)
+output_filtered_1 = reset_index(output_filtered_1)
+
+# Reset index:
+
+output = output.set_index(pd.Index(range(output.shape[0]), dtype='int64'))
+
+# Clean the data from outliers
+
+output_filtered_2 = clean_heuristic_trades(output_filtered_1, symbol_list, date_list)
+
+
+# Display the plots of the cleaned trades
+
+if args.graph_output:
+
+    graph_output(output_filtered_2, symbol_list, date_index, 'filtered')
 
 
 # Display the cleaned dataframe of the queried trades
 
 section('Cleaned data')
 
-if initial_length > final_length:
+if args.print_output:
 
-    print('The dataset has been shrunk from {} obs to {} obs'.format(initial_length, final_length))
-
-    if args.print_output:
-
-        print(output_filter_1)
-
-    else:
-
-        print('"Print output" is not active')
+    print(output_filtered_2)
 
 else:
 
-    print('No forbidden or unrecognized "tr_corr" and "tr_scond" have been identified, therefore the trades are not re-printed.')
+    print('"Print output" is not active')
 
 
-# Display the plots of the queried trades
-
-if args.graph_output:
-
-    graph_output(output_filter_1, symbol_list, date_index)
 
 
-# Clean the data from outliers
-
-output_filter_2 = clean_heuristic_trades(output_filter_1)
-
-
-# Display the plots of the queried trades
-
-if args.graph_output:
-
-    graph_output(output_filter_2, symbol_list, date_index)
-
-
-# DATA PLOTTING
-
-# TODO: Addition of dividend and/or split adjustments
-
-# TODO: Filter the data as outlined in the CF File Description Section 3.2
-
-# TODO: Check for different classes of shares (ex. GOOG and GOOG L)
-
-# TODO: Calculation of statistics such as the opening and closing prices from the primary market, the high and low from the consolidated
-#  market, share volume from the primary market, and consolidated share volume.
-
-# TODO: Plot the charts.
 
 
 
@@ -562,6 +536,18 @@ db.close()
 print()
 print('End of Execution')
 
-
-
 plt.show()
+
+
+# TODO: Addition of dividend and/or split adjustments
+
+# TODO: Filter the data as outlined in the CF File Description Section 3.2
+
+# TODO: Check for different classes of shares (ex. GOOG and GOOG L)
+
+# TODO: Calculation of statistics such as the opening and closing prices from the primary market, the high and low from the consolidated
+#  market, share volume from the primary market, and consolidated share volume.
+
+# TODO: Plot the charts.
+
+# TODO: Solve the suffix for GOOG

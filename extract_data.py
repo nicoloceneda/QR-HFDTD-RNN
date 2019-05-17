@@ -324,7 +324,7 @@ section('Queried data')
 
 if args.print_output:
 
-    print(output)
+    print(output.head())
 
 else:
 
@@ -512,6 +512,9 @@ if args.graph_output:
     graph_output(output_filtered, symbol_list, date_index, 'filtered')
 
 
+# ------------------------------------------------------------------------------------------------------------------------------------------
+# DATA MANAGEMENT
+# ------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # PROGRAM SETUP

@@ -12,16 +12,18 @@
 ├── Programming and Computing Setup.md    <--  Programming and computing setup required to execute
 │                                               the programs. 
 │
-├── extract_data.py                       <--  Command line interface to extract and clean trade data
-│        │                                      downloaded from the wrds database.
+├── extract_data.py                       <--  Command line interface to extract and clean trade 
+│        │                                     data downloaded from the wrds database.
 │        │
 │        └── extract_data_functionss.py   <--  General functions called in 'extract_data.py'
 │
 │
-├── extract_data_bg.sh                    <--  Wrapper script to execute 'extract_data.py' in 'debugging' mode.
+├── extract_data_bg.sh                    <--  Wrapper script to execute 'extract_data.py' in 
+│                                              'debugging' mode.
 │
 │
-├── extract_data_sl.sh                    <--  Wrapper script to execute extract_data.py in 'symbol_list' mode.
+├── extract_data_sl.sh                    <--  Wrapper script to execute extract_data.py in 
+│                                              'symbol_list' mode.
 │
 │
 └── nasdaq100.xlsx                        <--  List of securities extracted

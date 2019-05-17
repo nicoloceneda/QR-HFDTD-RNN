@@ -291,10 +291,6 @@ for count_1, symbol in enumerate(symbol_list):
 
     date_list = [d for d in date_list if d not in remove_dates]
 
-# Reset index:
-
-# TODO: output = reset_index(output)
-
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # DISPLAY THE RESULTS OF DATA EXTRACTION
@@ -353,27 +349,27 @@ def clean_time_trades(output_):
 
     tr_corr_check = output_['tr_corr'] == '00'
 
-    tr_scond_check = pd.Series([])
+    tr_scond_check = pd.Series(index=output_.index)
     char_allowed = {'@', 'A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'K', 'M', 'N', 'O', 'Q', 'R', 'S', 'V', 'W', 'Y', '1', '4', '5', '6', '7', '8', '9'}
     char_forbidden = {'G', 'L', 'P', 'T', 'U', 'X', 'Z'}
     char_recognized = char_allowed | char_forbidden
     char_unseen = []
 
-    for row in output_.index:
+    for row in range(output_.shape[0]):
 
-        element = output_.loc[row, 'tr_scond'].replace(" ", "")
+        element = output_.iloc[row, 5].replace(" ", "")
 
         if any((char in char_forbidden) for char in element) & all((char in char_recognized) for char in element):
 
-            tr_scond_check.loc[row] = False
+            tr_scond_check.iloc[row] = False
 
         elif all((char in char_allowed) for char in element):
 
-            tr_scond_check.loc[row] = True
+            tr_scond_check.iloc[row] = True
 
         elif any((char not in char_recognized) for char in element):
 
-            tr_scond_check.loc[row] = False
+            tr_scond_check.iloc[row] = False
             char_unseen.append(row)
 
     if len(char_unseen) > 0:
@@ -381,9 +377,7 @@ def clean_time_trades(output_):
         print('*** LOG: rows with unseen conditions:')
         print(char_unseen)
 
-    output_ = output_[tr_corr_check & tr_scond_check]
-
-    return output_
+    return tr_corr_check, tr_scond_check
 
 
 # Create a function to check the queried trades for outliers
@@ -413,7 +407,6 @@ def clean_heuristic_trades(output_, symbol_list_, date_list_):
             for date in date_list_:
 
                 price_sym_day = output_.loc[(output_['sym_root'] == symbol) & (pd.to_datetime(output_['date']) == pd.to_datetime(date)), 'price'] # 30 40
-                price_sym_day = reset_index(price_sym_day) # 0 9
                 price_sym_day_mean = pd.Series(index=price_sym_day.index)
                 price_sym_day_std = pd.Series(index=price_sym_day.index)
 
@@ -476,10 +469,7 @@ def clean_heuristic_trades(output_, symbol_list_, date_list_):
 
             not_outlier_series = not_outlier_series.append(not_outlier_sym_max)
 
-    not_outlier_series = reset_index(not_outlier_series)
-    output_cleaned = output_[not_outlier_series]
-
-    return output_cleaned
+    return not_outlier_series
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -487,25 +477,19 @@ def clean_heuristic_trades(output_, symbol_list_, date_list_):
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 
-# Clean the data from unwanted 'tr_corr' and 'tr_scond'
+# Compute the filter to clean the data from unwanted 'tr_corr' and 'tr_scond'
 
-output_filtered_1 = clean_time_trades(output)
-output_filtered_1 = reset_index(output_filtered_1)
-
-# Reset index:
-
-output = output.set_index(pd.Index(range(output.shape[0]), dtype='int64'))
-
-# Clean the data from outliers
-
-output_filtered_2 = clean_heuristic_trades(output_filtered_1, symbol_list, date_list)
+filter_tr_corr, filter_tr_scond = clean_time_trades(output)
 
 
-# Display the plots of the cleaned trades
+# Compute the filter to clean the data from outliers
 
-if args.graph_output:
+filter_outlier = clean_heuristic_trades(output, symbol_list, date_list)
 
-    graph_output(output_filtered_2, symbol_list, date_index, 'filtered')
+
+# Clean the data
+
+output_filtered = output[filter_tr_corr & filter_tr_scond & filter_outlier]
 
 
 # Display the cleaned dataframe of the queried trades
@@ -514,14 +498,18 @@ section('Cleaned data')
 
 if args.print_output:
 
-    print(output_filtered_2)
+    print(output_filtered)
 
 else:
 
     print('"Print output" is not active')
 
 
+# Display the plots of the cleaned trades
 
+if args.graph_output:
+
+    graph_output(output_filtered, symbol_list, date_index, 'filtered')
 
 
 

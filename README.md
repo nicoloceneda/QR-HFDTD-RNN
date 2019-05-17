@@ -6,13 +6,15 @@
 *Course*: Master of Banking and Finance \
 *Last update*: 15 May 2019
 
-The repository *Thesis* contains the following files:
-* **Programming and Computing Setup.md**: Detailed explanation of the programming and computing setup required to execute the programs. 
-* **extract_data.py**: This script constructs the command line interface which is used to extract and clean trade data for selected symbols, dates and times from the wrds database.
+<pre>
+## Project Structure
+|
+|___ **Programming and Computing Setup.md**: Programming and computing setup required to execute the programs. 
+|___ **extract_data.py**: Command line interface to extract and clean trade data from the wrds database.
+|        |___ **extract_data_formulas**
 * **extract_data_bg.sh**: Wrapper script to execute extract_data.py in 'debigging' mode.
 * **extract_data_sl.sh**: Wrapper script to execute extract_data.py in 'symbol_list' mode.
 * **nasdaq100.xlsx**: List of securities extracted
-
-![z_unfiltered](https://user-images.githubusercontent.com/47401951/57921698-4340d900-789e-11e9-91b1-1cd9b6a42f37.png)
-![z_filtered](https://user-images.githubusercontent.com/47401951/57921713-4e940480-789e-11e9-9c5f-0e9ef985c758.png)
-
+</pre>
+![z_unfiltered](https://user-images.githubusercontent.com/47401951/57942042-c713b900-78d0-11e9-9cc9-a239e89c60f2.png)
+![z_filtered](https://user-images.githubusercontent.com/47401951/57942022-bc592400-78d0-11e9-88f8-22393e302a9f.png)

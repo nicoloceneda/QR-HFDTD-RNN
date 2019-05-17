@@ -4,7 +4,7 @@
 *Contact*: nicolo.ceneda@student.unisg.ch \
 *Institution*: University of St Gallen \
 *Course*: Master of Banking and Finance \
-*Last update*: 15 May 2019
+*Last update*: 18 May 2019
 
 ## Project Structure
 <pre>

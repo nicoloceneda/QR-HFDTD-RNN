@@ -507,8 +507,8 @@ if args.graph_output:
 
 # Aggregate simultaneous observations
 
-price_median = output.groupby(['sym_root', 'date', 'time_m']).median().reset_index().loc[:, ['sym_root', 'date', 'time_m', 'price']]
-volume_sum = output.groupby(['sym_root', 'date', 'time_m']).sum().reset_index().loc[:, 'size']
+price_median = output_filtered.groupby(['sym_root', 'date', 'time_m']).median().reset_index().loc[:, ['sym_root', 'date', 'time_m', 'price']]
+volume_sum = output_filtered.groupby(['sym_root', 'date', 'time_m']).sum().reset_index().loc[:, 'size']
 output_aggregate = pd.concat([price_median, volume_sum], axis=1)
 
 

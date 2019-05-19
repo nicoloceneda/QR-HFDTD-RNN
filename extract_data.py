@@ -493,13 +493,11 @@ section('Cleaned data')
 print_output(output_filtered, print_output_flag_=args.print_output, head_flag_=True)
 
 
-# Display the plots of the cleaned trades and comparative plots
+# Display the plots of the cleaned trades
 
 if args.graph_output:
 
     graph_output(output_filtered, symbol_list, date_index, 'Filtered')
-    graph_output2(output, output_filtered, symbol_list[0], date_list[1], 'Original', 'Filtered')
-    graph_output3(output, output_filtered, symbol_list[0], date_list[1], 'Original', 'Filtered')
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -531,8 +529,12 @@ print_output(output_aggregate, print_output_flag_=args.print_output, head_flag_=
 if args.graph_output:
 
     graph_output(output_aggregate, symbol_list, date_index, 'Aggregated')
-    graph_output2(output_filtered, output_aggregate, symbol_list[0], date_list[1], 'Filtered', 'Aggregated')
-    graph_output3(output_filtered, output_aggregate, symbol_list[0], date_list[1], 'Filtered', 'Aggregated')
+
+# Display the comparative plot between the original and the (filtered and) aggregated data
+
+if args.graph_output:
+
+    graph_output2(output, output_aggregate, symbol_list[0], date_list[1], 'Original', 'Aggregated')
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------

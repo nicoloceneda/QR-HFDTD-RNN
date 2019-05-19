@@ -61,10 +61,16 @@ def graph_output(output_, symbol_list_, date_index_, usage):
     plt.savefig('z_{}.png'.format(usage))
 
 
-# Create a function to reset the index
+def print_output(output_, print_output_flag_, head_flag_):
 
-def reset_index(output_):
+    if (print_output_flag_ is True) & (head_flag_ is True):
 
-    output_ = output_.set_index(pd.Index(range(output_.shape[0]), dtype='int64'))
+        print(output_.head())
 
-    return output_
+    elif (print_output_flag_ is True) & (head_flag_ is False):
+
+        print(output_)
+
+    else:
+
+        print('"Print output" is not active')

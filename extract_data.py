@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 
 # Import the functions from the functions file
 
-from extract_data_functions import section, graph_output, reset_index
+from extract_data_functions import section, graph_output, print_output
 
 
 # Set the displayed size of pandas objects
@@ -322,13 +322,7 @@ print(n_obs_table)
 
 section('Queried data')
 
-if args.print_output:
-
-    print(output.head())
-
-else:
-
-    print('"Print output" is not active')
+print_output(output, print_output_flag_=args.print_output, head_flag_=True)
 
 
 # Display the plots of the queried trades
@@ -406,7 +400,7 @@ def clean_heuristic_trades(output_, symbol_list_, date_list_):
 
             for date in date_list_:
 
-                price_sym_day = output_.loc[(output_['sym_root'] == symbol) & (pd.to_datetime(output_['date']) == pd.to_datetime(date)), 'price'] # 30 40
+                price_sym_day = output_.loc[(output_['sym_root'] == symbol) & (pd.to_datetime(output_['date']) == pd.to_datetime(date)), 'price']
                 price_sym_day_mean = pd.Series(index=price_sym_day.index)
                 price_sym_day_std = pd.Series(index=price_sym_day.index)
 
@@ -472,11 +466,6 @@ def clean_heuristic_trades(output_, symbol_list_, date_list_):
     return not_outlier_series
 
 
-# ------------------------------------------------------------------------------------------------------------------------------------------
-# DISPLAY THE RESULTS OF DATA CLEANING
-# ------------------------------------------------------------------------------------------------------------------------------------------
-
-
 # Compute the filter to clean the data from unwanted 'tr_corr' and 'tr_scond'
 
 filter_tr_corr, filter_tr_scond = clean_time_trades(output)
@@ -492,17 +481,16 @@ filter_outlier = clean_heuristic_trades(output, symbol_list, date_list)
 output_filtered = output[filter_tr_corr & filter_tr_scond & filter_outlier]
 
 
+# ------------------------------------------------------------------------------------------------------------------------------------------
+# DISPLAY THE RESULTS OF DATA CLEANING
+# ------------------------------------------------------------------------------------------------------------------------------------------
+
+
 # Display the cleaned dataframe of the queried trades
 
 section('Cleaned data')
 
-if args.print_output:
-
-    print(output_filtered)
-
-else:
-
-    print('"Print output" is not active')
+print_output(output_filtered, print_output_flag_=args.print_output, head_flag_=True)
 
 
 # Display the plots of the cleaned trades
@@ -517,17 +505,55 @@ if args.graph_output:
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 
+# Aggregate simultaneous observations
+
+price_median = output.groupby(['sym_root', 'date', 'time_m']).median().reset_index().loc[:, ['sym_root', 'date', 'time_m', 'price']]
+volume_sum = output.groupby(['sym_root', 'date', 'time_m']).sum().reset_index().loc[:, 'size']
+output_aggregate = pd.concat([price_median, volume_sum], axis=1)
+
+
+# ------------------------------------------------------------------------------------------------------------------------------------------
+# DISPLAY THE RESULTS OF DATA MANAGEMENT
+# ------------------------------------------------------------------------------------------------------------------------------------------
+
+
+# Display the aggregate dataframe of the queried trades
+
+section('Aggregate data')
+
+print_output(output_aggregate, print_output_flag_=args.print_output, head_flag_=False)
+
+
+# Display the plots of the queried trades
+
+if args.graph_output:
+
+    graph_output(output_aggregate, symbol_list, date_index, 'aggregate')
+
+
+# ------------------------------------------------------------------------------------------------------------------------------------------
 # PROGRAM SETUP
+# ------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # Close the connection to the wrds cloud
 
 db.close()
 
+# Show the plots
+
+plt.show()
+
+
+# State the end of the execution
+
 print()
 print('End of Execution')
 
-plt.show()
+
+# ------------------------------------------------------------------------------------------------------------------------------------------
+# TO DO LIST
+# ------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # TODO: Addition of dividend and/or split adjustments

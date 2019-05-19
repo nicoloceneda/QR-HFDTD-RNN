@@ -29,5 +29,6 @@
 └── nasdaq100.xlsx                        <--  List of securities extracted
 </pre>
 
-![z_unfiltered](https://user-images.githubusercontent.com/47401951/57942042-c713b900-78d0-11e9-9cc9-a239e89c60f2.png)
-![z_filtered](https://user-images.githubusercontent.com/47401951/57942022-bc592400-78d0-11e9-88f8-22393e302a9f.png)
+![z_unfiltered](https://user-images.githubusercontent.com/47401951/57982854-e9314680-7a4a-11e9-8cad-b6f63a4b7b88.png)
+![z_filtered](https://user-images.githubusercontent.com/47401951/57982855-f9492600-7a4a-11e9-820f-f887a4acdce5.png)
+![z_aggregate](https://user-images.githubusercontent.com/47401951/57982857-0403bb00-7a4b-11e9-9414-33255c99e0bb.png)

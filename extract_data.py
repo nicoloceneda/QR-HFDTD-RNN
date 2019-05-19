@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 
 # Import the functions from the functions file
 
-from extract_data_functions import section, graph_output, print_output
+from extract_data_functions import section, graph_output, graph_output2, print_output, graph_output3
 
 
 # Set the displayed size of pandas objects
@@ -329,7 +329,7 @@ print_output(output, print_output_flag_=args.print_output, head_flag_=True)
 
 if args.graph_output:
 
-    graph_output(output, symbol_list, date_index, 'unfiltered')
+    graph_output(output, symbol_list, date_index, 'Original')
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -493,11 +493,13 @@ section('Cleaned data')
 print_output(output_filtered, print_output_flag_=args.print_output, head_flag_=True)
 
 
-# Display the plots of the cleaned trades
+# Display the plots of the cleaned trades and comparative plots
 
 if args.graph_output:
 
-    graph_output(output_filtered, symbol_list, date_index, 'filtered')
+    graph_output(output_filtered, symbol_list, date_index, 'Filtered')
+    graph_output2(output, output_filtered, symbol_list[0], date_list[1], 'Original', 'Filtered')
+    graph_output3(output, output_filtered, symbol_list[0], date_list[1], 'Original', 'Filtered')
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -524,11 +526,13 @@ section('Aggregate data')
 print_output(output_aggregate, print_output_flag_=args.print_output, head_flag_=False)
 
 
-# Display the plots of the queried trades
+# Display the plots of the queried trades and comparative plots
 
 if args.graph_output:
 
-    graph_output(output_aggregate, symbol_list, date_index, 'aggregate')
+    graph_output(output_aggregate, symbol_list, date_index, 'Aggregated')
+    graph_output2(output_filtered, output_aggregate, symbol_list[0], date_list[1], 'Filtered', 'Aggregated')
+    graph_output3(output_filtered, output_aggregate, symbol_list[0], date_list[1], 'Filtered', 'Aggregated')
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------

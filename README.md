@@ -2,7 +2,7 @@
 
 *Author*: Nicolo Ceneda \
 *Contact*: nicolo.ceneda@student.unisg.ch \
-*Website*: (The Balck Swan)[http://www.nicoloceneda.com]
+*Website*: [nicoloceneda.com](http://www.nicoloceneda.com) \
 *Institution*: University of St Gallen \
 *Course*: Master of Banking and Finance \
 *Last update*: 20 May 2019

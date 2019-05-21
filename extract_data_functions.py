@@ -64,7 +64,7 @@ def graph_output(output_, symbol_list_, date_index_, usage_):
 
 # Create a function to display comparative plots for the same symbol and date but different output status
 
-def graph_output2(output1_, output2_, symbol_, date_, usage1_, usage2_):
+def graph_comparison(output1_, output2_, symbol_, date_, usage1_, usage2_):
 
     x1 = output1_.loc[(output1_.loc[:, 'sym_root'] == symbol_) & (pd.to_datetime(output1_.loc[:, 'date']) == pd.to_datetime(date_)), 'time_m']
     y1 = output1_.loc[(output1_.loc[:, 'sym_root'] == symbol_) & (pd.to_datetime(output1_.loc[:, 'date']) == pd.to_datetime(date_)), 'price']
@@ -96,30 +96,6 @@ def graph_output2(output1_, output2_, symbol_, date_, usage1_, usage2_):
 
     fig.tight_layout()
     plt.savefig('z_{}_{}.png'.format(usage1_, usage2_))
-
-
-def graph_output3(output1_, output2_, symbol_, date_, usage1_, usage2_):
-
-    x1 = output1_.loc[(output1_.loc[:, 'sym_root'] == symbol_) & (pd.to_datetime(output1_.loc[:, 'date']) == pd.to_datetime(date_)), 'time_m']
-    y1 = output1_.loc[(output1_.loc[:, 'sym_root'] == symbol_) & (pd.to_datetime(output1_.loc[:, 'date']) == pd.to_datetime(date_)), 'price']
-    label1 = symbol_ + ', ' + str(pd.to_datetime(date_))[:10] + ', ' + usage1_
-
-    x2 = output2_.loc[(output2_.loc[:, 'sym_root'] == symbol_) & (pd.to_datetime(output2_.loc[:, 'date']) == pd.to_datetime(date_)), 'time_m']
-    y2 = output2_.loc[(output2_.loc[:, 'sym_root'] == symbol_) & (pd.to_datetime(output2_.loc[:, 'date']) == pd.to_datetime(date_)), 'price']
-    label2 = symbol_ + ', ' + str(pd.to_datetime(date_))[:10] + ', ' + usage2_
-
-    plt.figure(figsize=(30, 15))
-
-    plt.plot(x1, y1, label=label1, color='red', linewidth=0.2)
-    plt.plot(x2, y2, label=label2, color='blue', linewidth=0.3)
-    plt.grid(color='dimgrey', linewidth=0.15)
-    plt.xlim(x1.min(), x1.max())
-    plt.xlabel('time', fontsize=30)
-    plt.ylabel('price', fontsize=30)
-    plt.legend(fontsize=20)
-
-    plt.tight_layout()
-    plt.savefig('z_{}_{}_2.png'.format(usage1_, usage2_))
 
 
 # Create a function to print the output dataframes

@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 
 # Import the functions from the functions file
 
-from extract_data_functions import section, graph_output, graph_output2, print_output, graph_output3
+from extract_data_functions import section, graph_output, graph_comparison, print_output
 
 
 # Set the displayed size of pandas objects
@@ -384,7 +384,7 @@ def clean_heuristic_trades(output_, symbol_list_, date_list_):
     k_grid, y_grid = np.meshgrid(k_list, y_list)
     ky_array = np.array([k_grid.ravel(), y_grid.ravel()]).T
 
-    outlier_frame = pd.DataFrame(columns=['out_num_max', 'k_max', 'y_max', 'score_max', 'out_num_min', 'k_min', 'y_min', 'score_min'], index=symbol_list_)
+    outlier_frame = pd.DataFrame(columns=['out_num', 'k', 'y', 'score'], index=symbol_list_)
     not_outlier_series = pd.Series([])
 
     for symbol in symbol_list_:
@@ -404,15 +404,14 @@ def clean_heuristic_trades(output_, symbol_list_, date_list_):
                 price_sym_day_mean = pd.Series(index=price_sym_day.index)
                 price_sym_day_std = pd.Series(index=price_sym_day.index)
 
-                range_start = int((k - 1)/2) # 20
-                range_end = int(price_sym_day.shape[0] - (k - 1) / 2) #
+                range_start = int((k - 1) / 2)
+                range_end = int(price_sym_day.shape[0] - (k - 1) / 2)
 
                 for window_center in range(range_start, range_end):
-
-                    window_start = window_center - range_start # 0 1 2 3
-                    window_end = window_center + range_start + 1 # 41 42 43
+                    window_start = window_center - range_start
+                    window_end = window_center + range_start + 1
                     rolling_window = price_sym_day.iloc[window_start:window_end]
-                    rolling_window_trimmed = rolling_window[(rolling_window > rolling_window.quantile(delta)) & (rolling_window < rolling_window.quantile(1-delta))]
+                    rolling_window_trimmed = rolling_window[(rolling_window > rolling_window.quantile(delta)) & (rolling_window < rolling_window.quantile(1 - delta))]
                     price_sym_day_mean.iloc[window_center] = rolling_window_trimmed.mean()
                     price_sym_day_std.iloc[window_center] = rolling_window_trimmed.std()
 
@@ -428,40 +427,23 @@ def clean_heuristic_trades(output_, symbol_list_, date_list_):
                 outlier_val_sym_day = (price_sym_day - price_sym_day_mean).abs()
                 outlier_val_sym += (outlier_val_sym_day[outlier_con_sym_day]).sum()
 
-                not_outlier_con_sym_day = pd.Series((price_sym_day - price_sym_day_mean).abs() < 3 * price_sym_day_std + y)
+                not_outlier_con_sym_day = (price_sym_day - price_sym_day_mean).abs() < 3 * price_sym_day_std + y
                 not_outlier_sym = not_outlier_sym.append(not_outlier_con_sym_day)
 
             if count_1 == 1:
 
-                outlier_frame.loc[symbol, ['out_num_max', 'out_num_min']] = outlier_num_sym
-                outlier_frame.loc[symbol, ['score_max', 'score_min']] = outlier_val_sym / outlier_num_sym
-                outlier_frame.loc[symbol, ['k_max', 'k_min']] = k
-                outlier_frame.loc[symbol, ['y_max', 'y_min']] = y
-                not_outlier_sym_min, not_outlier_sym_max = not_outlier_sym, not_outlier_sym
+                outlier_frame.loc[symbol, 'out_num'] = outlier_num_sym
+                outlier_frame.loc[symbol, 'k'] = k
+                outlier_frame.loc[symbol, 'y'] = y
+                not_outlier_sym_f = not_outlier_sym
 
-            elif outlier_num_sym < outlier_frame.loc[symbol, 'out_num_min']:
+            elif outlier_num_sym > outlier_frame.loc[symbol, 'out_num']:
+                outlier_frame.loc[symbol, 'out_num'] = outlier_num_sym
+                outlier_frame.loc[symbol, 'k'] = k
+                outlier_frame.loc[symbol, 'y'] = y
+                not_outlier_sym_f = not_outlier_sym
 
-                outlier_frame.loc[symbol, 'out_num_min'] = outlier_num_sym
-                outlier_frame.loc[symbol, 'score_min'] = outlier_val_sym / outlier_num_sym
-                outlier_frame.loc[symbol, 'k_min'] = k
-                outlier_frame.loc[symbol, 'y_min'] = y
-                not_outlier_sym_min = not_outlier_sym
-
-            elif outlier_num_sym > outlier_frame.loc[symbol, 'out_num_max']:
-
-                outlier_frame.loc[symbol, 'out_num_max'] = outlier_num_sym
-                outlier_frame.loc[symbol, 'score_max'] = outlier_val_sym / outlier_num_sym
-                outlier_frame.loc[symbol, 'k_max'] = k
-                outlier_frame.loc[symbol, 'y_max'] = y
-                not_outlier_sym_max = not_outlier_sym
-
-        if outlier_frame.loc[symbol, 'score_min'] > outlier_frame.loc[symbol, 'score_max']:
-
-            not_outlier_series = not_outlier_series.append(not_outlier_sym_min)
-
-        else:
-
-            not_outlier_series = not_outlier_series.append(not_outlier_sym_max)
+        not_outlier_series = not_outlier_series.append(not_outlier_sym_f)
 
     return not_outlier_series
 
@@ -534,8 +516,12 @@ if args.graph_output:
 
 if args.graph_output:
 
-    graph_output2(output, output_aggregate, symbol_list[0], date_list[1], 'Original', 'Aggregated')
+    graph_comparison(output, output_aggregate, symbol_list[0], date_list[0], 'Original', 'Aggregated')
 
+
+if args.graph_output:
+
+    graph_comparison(output_aggregate, symbol_list[0], date_list[0], 'Original', 'Aggregated')
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # PROGRAM SETUP

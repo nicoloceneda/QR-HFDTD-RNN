@@ -1,4 +1,4 @@
-# Parsimonious Quantile Regression via a LSTM Recurrent Neural Network to Risk Manage Ultra High Frequency Data
+# Quantile Regression of High-Frequency Data Tail Dynamics via a Recurrent Neural Network
 
 *Author*: Nicolo Ceneda \
 *Contact*: nicolo.ceneda@student.unisg.ch \

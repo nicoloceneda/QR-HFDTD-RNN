@@ -30,33 +30,48 @@ import matplotlib.pyplot as plt
 
 def section(my_string):
 
-    print()
-    print('-----------------------------------------------------------------------------------------------')
+    print('\n-----------------------------------------------------------------------------------------------')
     print('{}'.format(my_string))
     print('-----------------------------------------------------------------------------------------------')
+
+
+# Create a function to print the output dataframes
+
+def print_output(output_, print_output_flag_, head_flag_):
+
+    if (print_output_flag_ is True) & (head_flag_ is True):
+
+        print(output_.head())
+
+    elif (print_output_flag_ is True) & (head_flag_ is False):
+
+        print(output_)
+
+    else:
+
+        print('"Print output" is not active')
 
 
 # Create a function to display the plots of the specified symbols and dates
 
 def graph_output(output_, symbol_list_, date_index_, usage_):
-
     date_grid, symbol_grid = np.meshgrid(date_index_, symbol_list_)
-    date_symbol_grid = np.array([date_grid.ravel(), symbol_grid.ravel()]).T
+    date_symbol = np.array([date_grid.ravel(), symbol_grid.ravel()]).T
 
-    fig = plt.figure(figsize=(20,10))
     h = len(date_index_)
     w = len(symbol_list_)
-    pos = 0
 
-    for date, symbol in date_symbol_grid:
+    fig, ax = plt.subplots(nrows=h, ncols=w, sharex=True, figsize=(20, 10))
+    ax = ax.flatten()
 
-        pos += 1
-        x = output_.loc[(output_.loc[:, 'sym_root'] == symbol) & (pd.to_datetime(output_.loc[:, 'date']) == pd.to_datetime(date)), 'time_m']
-        y = output_.loc[(output_.loc[:, 'sym_root'] == symbol) & (pd.to_datetime(output_.loc[:, 'date']) == pd.to_datetime(date)), 'price']
-
-        ax = fig.add_subplot(h, w, pos)
-        ax.plot(x, y, linewidth=0.1)
-        ax.set_title('{} {} {}'.format(symbol, str(pd.to_datetime(date))[:10], usage_))
+    for i in range(len(date_symbol)):
+        symbol = date_symbol[i, 1]
+        date = pd.to_datetime(date_symbol[i, 0])
+        condition = (output_['sym_root'] == symbol) & (pd.to_datetime(output_['date']) == date)
+        x = output_.loc[condition, 'time_m']
+        y = output_.loc[condition, 'price']
+        ax[i].plot(x, y, linewidth=0.1)
+        ax[i].set_title('{} {} {}'.format(symbol, str(pd.to_datetime(date))[:10], usage_))
 
     fig.tight_layout()
     plt.savefig('z_{}.png'.format(usage_))
@@ -66,12 +81,14 @@ def graph_output(output_, symbol_list_, date_index_, usage_):
 
 def graph_comparison(output1_, output2_, symbol_, date_, usage1_, usage2_):
 
-    x1 = output1_.loc[(output1_.loc[:, 'sym_root'] == symbol_) & (pd.to_datetime(output1_.loc[:, 'date']) == pd.to_datetime(date_)), 'time_m']
-    y1 = output1_.loc[(output1_.loc[:, 'sym_root'] == symbol_) & (pd.to_datetime(output1_.loc[:, 'date']) == pd.to_datetime(date_)), 'price']
+    condition_1 = (output1_['sym_root'] == symbol_) & (pd.to_datetime(output1_['date']) == pd.to_datetime(date_))
+    x1 = output1_.loc[condition_1, 'time_m']
+    y1 = output1_.loc[condition_1, 'price']
     label1 = symbol_ + ', ' + str(pd.to_datetime(date_))[:10] + ', ' + usage1_
 
-    x2 = output2_.loc[(output2_.loc[:, 'sym_root'] == symbol_) & (pd.to_datetime(output2_.loc[:, 'date']) == pd.to_datetime(date_)), 'time_m']
-    y2 = output2_.loc[(output2_.loc[:, 'sym_root'] == symbol_) & (pd.to_datetime(output2_.loc[:, 'date']) == pd.to_datetime(date_)), 'price']
+    condition_2 = (output2_['sym_root'] == symbol_) & (pd.to_datetime(output2_['date']) == pd.to_datetime(date_))
+    x2 = output2_.loc[condition_2, 'time_m']
+    y2 = output2_.loc[condition_2, 'price']
     label2 = symbol_ + ', ' + str(pd.to_datetime(date_))[:10] + ', ' + usage2_
 
     fig, ax = plt.subplots(1, 2, sharey=True, figsize=(30, 10))
@@ -98,18 +115,4 @@ def graph_comparison(output1_, output2_, symbol_, date_, usage1_, usage2_):
     plt.savefig('z_{}_{}.png'.format(usage1_, usage2_))
 
 
-# Create a function to print the output dataframes
 
-def print_output(output_, print_output_flag_, head_flag_):
-
-    if (print_output_flag_ is True) & (head_flag_ is True):
-
-        print(output_.head())
-
-    elif (print_output_flag_ is True) & (head_flag_ is False):
-
-        print(output_)
-
-    else:
-
-        print('"Print output" is not active')

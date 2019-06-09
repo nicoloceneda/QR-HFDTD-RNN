@@ -156,7 +156,7 @@ my_wrds_username@wrds-cloud.wharton.upenn.edu's password:
 To install a new package on the WRDS Cloud it is necessary to execute three sequential commands to create a *virtualenv* in the WRDS Cloud home directory from one of the head nodes, activate the *virtualenv*, and download the package needed using `pip`. Note that since the computing nodes are not internet-accessible, it is necessary to use the two head nodes to upload packages to the WRDS Cloud home directory. However, once uploaded, these packages can also be used on the computing nodes.
 
 ```
-# Installed a Python package (from Terminal):
+# Install a Python package (from Terminal):
 
 my_laptop:my_directory my_name$ ssh my_wrds_username@wrds-cloud.wharton.upenn.edu
 my_wrds_username@wrds-cloud.wharton.upenn.edu's password:

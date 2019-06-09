@@ -56,7 +56,7 @@ Now the setup is complete and it is possible to start working on jobs. There are
 
 ## 1.1 - Interactive Jobs
 
-To run interactive jobs, it is necessary to schedule an interactive job with the WRDS Cloud Grid Engine. As with all jobs on the WRDS Cloud, batch jobs are submitted from one of the head nodes and run on one of the computing nodes. 
+To run interactive jobs, it is necessary to schedule an interactive job with the WRDS Cloud Grid Engine. As with all jobs on the WRDS Cloud, interactive jobs are submitted from one of the head nodes and run on one of the computing nodes. 
 
 ```
 # Schedule an interactive job with the Grid Engine (from Terminal):
@@ -80,11 +80,11 @@ The above code creates a `SSH` connection to wrds-cloud.wharton.upenn.edu, submi
 
 ## 1.2 - Batch Jobs
 
-To run batch jobs two files are needed: a Python program (.py) to be executed and a wrapper shell script (.sh) to be submitted to the Grid Engine to specify the software to use and the program to run. It is this wrapper script that is submitted to Grid Engine, not research program. More precisely, as with all jobs on the WRDS Cloud, batch jobs are submitted from one of the head nodes and run on one of the computing nodes. 
+To run batch jobs two files are needed: a Python program (.py) to be executed and a wrapper shell script (.sh) to be submitted to the Grid Engine to specify the software to use and the program to run. It is this wrapper script that is submitted to Grid Engine, not the research program. More precisely, as with all jobs on the WRDS Cloud, batch jobs are submitted from one of the head nodes and run on one of the computing nodes. 
 
 > Note that a batch job requires a *pgpass* file as it cannot prompt for passwords.
 
-The first step is the creation of the Python program `my_program.py`, using a command line editor such as *nano* or writing it on your local computer and uploading it with *SFTP*. Here is an example of the content of this program:
+The first step is the creation of the Python program `my_program.py`, using a command line editor such as *nano* or writing it on your local computer and uploading it via *SFTP*. Here is an example of the content of this program:
 
 ```
 # Python program script (.py file):
@@ -95,9 +95,9 @@ data = db.raw_sql("select time_m, size, price from taqmsec.ctm_20180102")
 data.to_csv("ctm_20180102.csv")
 ```
 
-The above code establishes a connection to WRDS, runs a SQL query and outputs the result as a .csv file.
+The above code establishes a connection to WRDS, runs a SQL query and outputs the result to a .csv file.
 
-The second step is the creation of the wrapper shell script `my_program.sh`, using a command line editor such as *nano* or writing it on your local computer and uploading it with *SFTP*. Here is an example of the content of this program:
+The second step is the creation of the wrapper shell script `my_program.sh`, using a command line editor such as *nano* or writing it on your local computer and uploading it via *SFTP*. Here is an example of the content of this program:
 
 ```
 # Wrapper shell script (.sh file):
@@ -109,7 +109,7 @@ The second step is the creation of the wrapper shell script `my_program.sh`, usi
 python3 my_program.py
 ```
 
-> Note that since the wrapper script is simply a shell script, it supports any UNIX commands. 
+> Note that since the wrapper script is simply a shell script, it supports all UNIX commands. 
 
 The above code sets the shell of the wrapper script to `bash`, instructs (with `cwd`) the Grid Engine to look into the current directory for referenced files and to store the output in the same directory, sends an email to the specified address when the job starts and terminates, and runs the program `my_program.py` using Python 3. 
 
@@ -123,13 +123,13 @@ my_wrds_username@wrds-cloud.wharton.upenn.edu's password:
 [my_wrds_username@wrds-cloud-login1-h ~]$ qsub my_program.sh
 ```
 
-The Grid Engine will then run the batch job and return several output files to the same directory as the wrapper script (as instructed by `#$ -cwd`): a my_program.csv file, which is the output of the Python program; a my_program.sh.o##### file, which is the Grid Engine file that contains all the output from the my_program.sh file; a my_program.sh.e##### file, which contains all the errors of the my_program.sh file. ##### stands for the Grid Engine job number.
+The Grid Engine will then run the batch job and return several output files to the same directory of the wrapper script (as instructed by `#$ -cwd`): a my_program.csv file, which is the output of the Python program; a my_program.sh.o##### file, which is the Grid Engine file that contains all the output from the my_program.sh file; a my_program.sh.e##### file, which contains all the errors of the my_program.sh file. ##### stands for the Grid Engine job number.
 
 > Note that running the program multiple times will overwrite the my_program.csv file with the new output. To avoid this, it is sufficient to rename the initial output with the command `mv my_program.csv new_name.csv`. On the contrary, the Grid Engine output and error files are not overwritten as their name contains the job number, which makes them unique.
 
 ### 1.2.1 - Transferring Files with SFTP
 
-The easiest way to run batch jobs is to create the Python program (.py) and the wrapper shell script (.sh) locally on your local computer and then transfer them to the WRDS Cloud via a *Secure FTP (SFTP)*. This is a remote filesystem browser that allows to manage files across directories on remote servers and to download and upload data betweem the remote server and the local workstation. This is a convenient way to connect to the WRDS Cloud to manage the files contained in the personal home directory and the scratch directory, browse any WRDS data and upload or download anything. 
+The easiest way to run batch jobs is to create the Python program (.py) and the wrapper shell script (.sh) locally on your computer and then transfer them to the WRDS Cloud via *Secure FTP (SFTP)*. This is a remote filesystem browser that allows to manage files across directories on remote servers and to download and upload data betweem the remote server and the local workstation. This is a convenient way to connect to the WRDS Cloud to manage the files contained in the personal home directory and the scratch directory, browse through the WRDS data and upload or download anything. 
 
 A suggested SFTS browser for Mac is *CyberDuck*, which can be downloaded [here](https://cyberduck.io). Once the SFTP client has been opened on the local workstation, to connect to WRDS Cloud it is necessary to create a new connection with the following parameters:
 * Server: wrds-cloud.wharton.upenn.edu

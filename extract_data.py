@@ -21,7 +21,11 @@ import numpy as np
 import pandas as pd
 import pandas_market_calendars as mcal
 import matplotlib.pyplot as plt
+import time
 
+# Time execution
+
+start = time.time()
 
 # Import the functions from the functions file
 
@@ -372,7 +376,8 @@ def clean_time_trades(output_):
 
 def clean_heuristic_trades(output_, symbol_list_, date_list_):
 
-    delta = 0.1
+    # delta = 0.1
+    delta = 10
     k_list = np.arange(41, 121, 20, dtype='int64')
     y_list = np.arange(0.02, 0.08, 0.02)
     k_grid, y_grid = np.meshgrid(k_list, y_list)
@@ -400,15 +405,16 @@ def clean_heuristic_trades(output_, symbol_list_, date_list_):
                 price_sym_day_std = pd.Series(index=price_sym_day.index)
 
                 range_start = int((k - 1) / 2) # 20
-                range_end = int(price_sym_day.shape[0] - range_start) # 80
+                range_end = int(price_sym_day.shape[0] - range_start) # d-20
 
-                for window_center in range(range_start, range_end): # 20 -> 79
-                    window_start = window_center - range_start # 0 -> 59
-                    window_end = window_center + range_start + 1 # 21 -> 100
-                    rolling_window = price_sym_day.iloc[window_start:window_end]
-                    rolling_window_trimmed = rolling_window[(rolling_window > rolling_window.quantile(delta)) & (rolling_window < rolling_window.quantile(1 - delta))]
-                    price_sym_day_mean.iloc[window_center] = rolling_window_trimmed.mean()
-                    price_sym_day_std.iloc[window_center] = rolling_window_trimmed.std()
+                for window_center in range(range_start, range_end): # 20 -> d-20
+                    window_start = window_center - range_start # 0 -> d-40
+                    window_end = window_center + range_start + 1 # 41 -> d+1
+                    rolling_window = price_sym_day.iloc[window_start:window_end] # (0 - 41) -> (d-40 - d+1)   |
+                    # rolling_window_trimmed = rolling_window[(rolling_window > rolling_window.quantile(delta)) & (rolling_window < rolling_window.quantile(1 - delta))]
+                    rolling_window_trimmed = rolling_window[(rolling_window > np.percentile(rolling_window, delta)) & (rolling_window > np.percentile(rolling_window, 100 - delta))]
+                    price_sym_day_mean.iloc[window_center] = rolling_window_trimmed.mean() # 20  -> d-20
+                    price_sym_day_std.iloc[window_center] = rolling_window_trimmed.std() # 20  -> d-20
 
                 price_sym_day_mean.iloc[:range_start] = price_sym_day_mean.iloc[range_start]
                 price_sym_day_mean.iloc[range_end:] = price_sym_day_mean.iloc[range_end - 1]
@@ -484,6 +490,31 @@ volume_sum = output_filtered.groupby(['sym_root', 'date', 'time_m']).sum().reset
 output_aggregate = pd.concat([price_median, volume_sum], axis=1)
 
 
+# Resample at lower frequency
+
+output_resampled = pd.DataFrame(columns=output_aggregate.columns)
+
+for symbol in symbol_list:
+
+    for date in date_list:
+
+        start_datetime = pd.to_datetime(date).strftime('%Y-%m-%d') + ' ' + args.start_time
+        end_datetime = pd.to_datetime(date).strftime('%Y-%m-%d') + ' ' + args.end_time
+        index_extended = pd.date_range(start=start_datetime, end=end_datetime, freq='50L')
+        df_extended_index = pd.DataFrame(index=index_extended)
+
+        df_provisional = output_aggregate[(output_aggregate['sym_root'] == symbol) & (pd.to_datetime(output_aggregate['date']) == pd.to_datetime(date))]
+        index_resample = pd.DatetimeIndex(pd.to_datetime(df_provisional['date'].apply(str) + ' ' + df_provisional['time_m'].apply(str)))
+        df_provisional = df_provisional.set_index(index_resample)
+        price_last = df_provisional.resample('50L', label='right', closed='right').last().loc[:, ['sym_root', 'date', 'time_m', 'price']]
+        volume_sum = df_provisional.resample('50L', label='right', closed='right').sum().loc[:, 'size']
+        df_provisional_resampled = pd.concat([price_last, volume_sum], axis=1)
+        df_resampled = df_extended_index.join(df_provisional_resampled)
+        output_resampled = output_resampled.append(df_resampled)
+
+
+print(output_resampled)
+
 # Display the aggregate dataframe of the queried trades
 
 section('Aggregate data')
@@ -523,6 +554,13 @@ plt.show()
 
 print()
 print('End of Execution')
+
+
+# Time execution
+
+end = time.time()
+
+print(end - start)
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------

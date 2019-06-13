@@ -323,13 +323,6 @@ section('Queried data')
 print_output(output_=output, print_output_flag_=args.print_output, head_flag_=True)
 
 
-# Display the plots of the queried trades
-
-if args.graph_output:
-
-    graph_output(output_=output, symbol_list_=symbol_list, date_index_=date_index, usage_='Original')
-
-
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # DATA CLEANING
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -387,30 +380,30 @@ def clean_heuristic_trades(output_, symbol_list_, date_list_):
 
     not_outlier_series = pd.Series([])
 
-    for pos, symbol in enumerate(symbol_list_): # pos = 0 symbol = 'AAPL'
+    for pos, symbol in enumerate(symbol_list_):
 
         count = 0
 
-        for k, y in ky_array: # k = 41.0 y = 0.02
+        for k, y in ky_array:
 
             count += 1
             outlier_num_sym = 0
             not_outlier_sym = pd.Series([])
 
-            for date in date_list_: # date = '20180328'
+            for date in date_list_:
 
                 price_sym_day = output_.loc[(output_['sym_root'] == symbol) & (pd.to_datetime(output_['date']) == pd.to_datetime(date)), 'price']
 
-                center_beg = int((k - 1) / 2)  # 20
-                center_end = int(len(price_sym_day)) - center_beg  # 5573
-                perc_b = int(k * delta)  # 4
-                perc_t = int(k * (1 - delta) + 1)  # 36
+                center_beg = int((k - 1) / 2)
+                center_end = int(len(price_sym_day)) - center_beg
+                perc_b = int(k * delta)
+                perc_t = int(k * (1 - delta) + 1)
 
-                window = np.sort(price_sym_day[:int(k)])  # :41 = 0:40
+                window = np.sort(price_sym_day[:int(k)])
                 mean_rolling = np.repeat(np.nan, len(price_sym_day))
                 std_rolling = np.repeat(np.nan, len(price_sym_day))
 
-                for i in range(center_beg, center_end):  # 2 -> 18 [17]
+                for i in range(center_beg, center_end):
 
                     mean_rolling[i] = window[perc_b:perc_t].mean()
                     std_rolling[i] = window[perc_b:perc_t].std()
@@ -450,7 +443,8 @@ def clean_heuristic_trades(output_, symbol_list_, date_list_):
 
         not_outlier_series = not_outlier_series.append(not_outlier_sym_f)
 
-    return not_outlier_series
+    return not_outlier_series, outlier_frame
+
 
 # Compute the filter to clean the data from unwanted 'tr_corr' and 'tr_scond'
 
@@ -459,12 +453,19 @@ filter_tr_corr, filter_tr_scond = clean_time_trades(output)
 
 # Compute the filter to clean the data from outliers
 
-filter_outlier = clean_heuristic_trades(output, symbol_list, date_list)
+filter_outlier, ky_table_outlier = clean_heuristic_trades(output, symbol_list, date_list)
 
 
 # Clean the data
 
 output_filtered = output[filter_tr_corr & filter_tr_scond & filter_outlier]
+
+
+# Display the table of optimal k, y
+
+section('k, y to optimally filter each queried symbol')
+
+print(ky_table_outlier)
 
 
 # Display the cleaned dataframe of the queried trades
@@ -474,69 +475,119 @@ section('Cleaned data')
 print_output(output_=output_filtered, print_output_flag_=args.print_output, head_flag_=True)
 
 
-# Display the plots of the cleaned trades
-
-if args.graph_output:
-
-    graph_output(output_=output_filtered, symbol_list_=symbol_list, date_index_=date_index, usage_='Filtered')
-
-
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # DATA MANAGEMENT
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 
+# Create a function to aggregate simultaneous observations
+
+def aggregate_time_trades(output_filtered_):
+
+    price_median = output_filtered_.groupby(['sym_root', 'date', 'time_m']).median().reset_index().loc[:, ['sym_root', 'date', 'time_m', 'price']]
+    volume_sum = output_filtered_.groupby(['sym_root', 'date', 'time_m']).sum().reset_index().loc[:, 'size']
+    output_aggregate = pd.concat([price_median, volume_sum], axis=1)
+
+    return output_aggregate
+
+
+# Create a function to resample observations at lower frequency
+
+def resample_time_trades(output_aggregate_, symbol_list_, date_list_):
+
+    freq_list = ['200L', '250L', '300L', '350L', '500L']
+    nan_frame = pd.DataFrame(columns=['symbol', 'freq', 'ratio'])
+    nan_frame['symbol'] = pd.Series(symbol_list)
+
+    for count, freq in enumerate(freq_list):
+
+        output_resampled = pd.DataFrame(columns=output_aggregate_.columns)
+
+        for pos, symbol in enumerate(symbol_list):
+
+            num_nan_sym = 0
+            num_tot_sym = 0
+
+            for date in date_list:
+
+                df_sym_day = output_aggregate_[(output_aggregate_['sym_root'] == symbol) & (pd.to_datetime(output_aggregate_['date']) == pd.to_datetime(date))]
+                index_resample = pd.DatetimeIndex(pd.to_datetime(df_sym_day['date'].apply(str) + ' ' + df_sym_day['time_m'].apply(str)))
+                df_sym_day = df_sym_day.set_index(index_resample)
+                price_last = df_sym_day.resample(freq, label='right', closed='right').last().loc[:, ['sym_root', 'date', 'time_m', 'price']]
+                volume_sum = df_sym_day.resample(freq, label='right', closed='right').sum().loc[:, 'size']
+                df_sym_day_resampled = pd.concat([price_last, volume_sum], axis=1)
+
+                start_datetime = pd.to_datetime(date).strftime('%Y-%m-%d') + ' ' + args.start_time
+                end_datetime = pd.to_datetime(date).strftime('%Y-%m-%d') + ' ' + args.end_time
+                index_extended = pd.date_range(start=start_datetime, end=end_datetime, freq=freq)
+                df_extended_index = pd.DataFrame(index=index_extended)
+                df_resampled = df_extended_index.join(df_sym_day_resampled)
+
+                num_nan_sym += pd.isna(df_resampled['sym_root']).sum()
+                num_tot_sym += len(df_resampled)
+
+                output_resampled = output_resampled.append(df_resampled)
+
+            ratio = num_nan_sym / num_tot_sym
+
+            if count == 0:
+
+                nan_frame.loc[pos, 'freq'] = freq
+                nan_frame.loc[pos, 'ratio'] = ratio
+                output_resampled_f = output_resampled
+
+            elif ratio < nan_frame.loc[pos, 'ratio']:
+
+                nan_frame.loc[pos, 'freq'] = freq
+                nan_frame.loc[pos, 'ratio'] = ratio
+                output_resampled_f = output_resampled
+
+    return output_resampled_f, nan_frame
+
+
 # Aggregate simultaneous observations
 
-price_median = output_filtered.groupby(['sym_root', 'date', 'time_m']).median().reset_index().loc[:, ['sym_root', 'date', 'time_m', 'price']]
-volume_sum = output_filtered.groupby(['sym_root', 'date', 'time_m']).sum().reset_index().loc[:, 'size']
-output_aggregate = pd.concat([price_median, volume_sum], axis=1)
+output_aggregate = aggregate_time_trades(output_filtered)
 
 
-# Resample at lower frequency
+# Resample observations at lower frequency
 
-output_resampled = pd.DataFrame(columns=output_aggregate.columns)
-
-for symbol in symbol_list:
-
-    for date in date_list:
-
-        start_datetime = pd.to_datetime(date).strftime('%Y-%m-%d') + ' ' + args.start_time
-        end_datetime = pd.to_datetime(date).strftime('%Y-%m-%d') + ' ' + args.end_time
-        index_extended = pd.date_range(start=start_datetime, end=end_datetime, freq='50L')
-        df_extended_index = pd.DataFrame(index=index_extended)
-
-        df_provisional = output_aggregate[(output_aggregate['sym_root'] == symbol) & (pd.to_datetime(output_aggregate['date']) == pd.to_datetime(date))]
-        index_resample = pd.DatetimeIndex(pd.to_datetime(df_provisional['date'].apply(str) + ' ' + df_provisional['time_m'].apply(str)))
-        df_provisional = df_provisional.set_index(index_resample)
-        price_last = df_provisional.resample('50L', label='right', closed='right').last().loc[:, ['sym_root', 'date', 'time_m', 'price']]
-        volume_sum = df_provisional.resample('50L', label='right', closed='right').sum().loc[:, 'size']
-        df_provisional_resampled = pd.concat([price_last, volume_sum], axis=1)
-        df_resampled = df_extended_index.join(df_provisional_resampled)
-        output_resampled = output_resampled.append(df_resampled)
+output_resampled_f, nan_frame = resample_time_trades(output_aggregate, symbol_list, date_list)
 
 
-print(output_resampled)
+# Display the aggregated dataframe of the queried trades
 
-# Display the aggregate dataframe of the queried trades
+section('Aggregated and resampled data')
 
-section('Aggregate data')
-
-print_output(output_=output_aggregate, print_output_flag_=args.print_output, head_flag_=False)
+print_output(output_=output_aggregate, print_output_flag_=args.print_output, head_flag_=True)
 
 
-# Display the plots of the queried trades and comparative plots
+# Display the table of optimal resampling frequencies
+
+section('Resampling frequencies')
+
+print(nan_frame)
+
+
+# Display the resampled dataframe of the queried trades
+
+section('Resampled data')
+
+print_output(output_=output_resampled_f, print_output_flag_=args.print_output, head_flag_=False)
+
+
+# Display the final plots of the queried trades
 
 if args.graph_output:
 
-    graph_output(output_=output_aggregate, symbol_list_=symbol_list, date_index_=date_index, usage_='Aggregated')
+    graph_output(output_=output_resampled_f, symbol_list_=symbol_list, date_index_=date_index, usage_='Final')
 
 
-# Display the comparative plot between the original and the (filtered and) aggregated data
+# Display the comparative plot between the original and the final plots
 
 if args.graph_output:
 
-    graph_comparison(output, output_aggregate, symbol_list[0], date_list[0], 'Original', 'Aggregated')
+    graph_comparison(output, output_resampled_f, symbol_list[0], date_list[0], 'Original', 'Final')
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------

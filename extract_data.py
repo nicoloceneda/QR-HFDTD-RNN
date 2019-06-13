@@ -528,6 +528,7 @@ def resample_time_trades(output_aggregate_, symbol_list_, date_list_):
 
                 # The position of this line is crucial
                 df_resampled['price'] = df_resampled['price'].interpolate(method='linear')
+                df_resampled['price'] = df_resampled['price'].fillna(method='bfill')
 
                 output_resampled = output_resampled.append(df_resampled)
 

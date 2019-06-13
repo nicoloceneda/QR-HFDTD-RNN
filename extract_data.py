@@ -527,7 +527,7 @@ def resample_time_trades(output_aggregate_, symbol_list_, date_list_):
                 num_tot_sym += len(df_resampled)
 
                 # The position of this line is crucial
-                df_resampled = df_resampled.interpolate(method='linear')
+                df_resampled['price'] = df_resampled['price'].interpolate(method='linear')
 
                 output_resampled = output_resampled.append(df_resampled)
 

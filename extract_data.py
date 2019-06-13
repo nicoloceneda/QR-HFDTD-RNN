@@ -86,7 +86,7 @@ args = parser.parse_args()
 
 if args.debug:
 
-    args.symbol_list = ['AAPL', 'GOOG', 'TSLA']
+    args.symbol_list = ['AAPL', 'AMZN', 'TSLA']
     args.start_date = '2019-03-28'
     args.end_date = '2019-04-02'
     args.start_time = '09:38:00'
@@ -525,6 +525,9 @@ def resample_time_trades(output_aggregate_, symbol_list_, date_list_):
 
                 num_nan_sym += pd.isna(df_resampled['sym_root']).sum()
                 num_tot_sym += len(df_resampled)
+
+                # The position of this line is crucial
+                df_resampled = df_resampled.interpolate(method='linear')
 
                 output_resampled = output_resampled.append(df_resampled)
 

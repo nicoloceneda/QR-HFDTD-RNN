@@ -376,8 +376,7 @@ def clean_time_trades(output_):
 
 def clean_heuristic_trades(output_, symbol_list_, date_list_):
 
-    # delta = 0.1
-    delta = 10
+    delta = 0.1
     k_list = np.arange(41, 121, 20, dtype='int64')
     y_list = np.arange(0.02, 0.08, 0.02)
     k_grid, y_grid = np.meshgrid(k_list, y_list)
@@ -388,47 +387,52 @@ def clean_heuristic_trades(output_, symbol_list_, date_list_):
 
     not_outlier_series = pd.Series([])
 
-    for pos, symbol in enumerate(symbol_list_):
+    for pos, symbol in enumerate(symbol_list_): # pos = 0 symbol = 'AAPL'
 
         count = 0
 
-        for k, y in ky_array:
+        for k, y in ky_array: # k = 41.0 y = 0.02
 
             count += 1
             outlier_num_sym = 0
             not_outlier_sym = pd.Series([])
 
-            for date in date_list_:
+            for date in date_list_: # date = '20180328'
 
                 price_sym_day = output_.loc[(output_['sym_root'] == symbol) & (pd.to_datetime(output_['date']) == pd.to_datetime(date)), 'price']
-                price_sym_day_mean = pd.Series(index=price_sym_day.index)
-                price_sym_day_std = pd.Series(index=price_sym_day.index)
 
-                range_start = int((k - 1) / 2) # 20
-                range_end = int(price_sym_day.shape[0] - range_start) # d-20
+                center_beg = int((k - 1) / 2)  # 20
+                center_end = int(len(price_sym_day)) - center_beg  # 5573
+                perc_b = int(k * delta)  # 4
+                perc_t = int(k * (1 - delta) + 1)  # 36
 
-                for window_center in range(range_start, range_end): # 20 -> d-20
-                    window_start = window_center - range_start # 0 -> d-40
-                    window_end = window_center + range_start + 1 # 41 -> d+1
-                    rolling_window = price_sym_day.iloc[window_start:window_end] # (0 - 41) -> (d-40 - d+1)   |
-                    # rolling_window_trimmed = rolling_window[(rolling_window > rolling_window.quantile(delta)) & (rolling_window < rolling_window.quantile(1 - delta))]
-                    rolling_window_trimmed = rolling_window[(rolling_window > np.percentile(rolling_window, delta)) & (rolling_window > np.percentile(rolling_window, 100 - delta))]
-                    price_sym_day_mean.iloc[window_center] = rolling_window_trimmed.mean() # 20  -> d-20
-                    price_sym_day_std.iloc[window_center] = rolling_window_trimmed.std() # 20  -> d-20
+                window = np.sort(price_sym_day[:int(k)])  # :41 = 0:40
+                mean_rolling = np.repeat(np.nan, len(price_sym_day))
+                std_rolling = np.repeat(np.nan, len(price_sym_day))
 
-                price_sym_day_mean.iloc[:range_start] = price_sym_day_mean.iloc[range_start]
-                price_sym_day_mean.iloc[range_end:] = price_sym_day_mean.iloc[range_end - 1]
-                price_sym_day_std.iloc[:range_start] = price_sym_day_std.iloc[range_start]
-                price_sym_day_std.iloc[range_end:] = price_sym_day_std.iloc[range_end - 1]
+                for i in range(center_beg, center_end):  # 2 -> 18 [17]
+
+                    mean_rolling[i] = window[perc_b:perc_t].mean()
+                    std_rolling[i] = window[perc_b:perc_t].std()
+
+                    if i < center_end - 1:
+                        idx_drop = np.searchsorted(window, price_sym_day[i - center_beg])
+                        window[idx_drop] = price_sym_day[i + center_beg + 1]
+                        window.sort()
+
+                price_sym_day_mean = pd.Series(mean_rolling, index=price_sym_day.index)
+                price_sym_day_std = pd.Series(std_rolling, index=price_sym_day.index)
+
+                price_sym_day_mean.iloc[:center_beg] = price_sym_day_mean.iloc[center_beg]
+                price_sym_day_mean.iloc[center_end:] = price_sym_day_mean.iloc[center_end - 1]
+                price_sym_day_std.iloc[:center_beg] = price_sym_day_std.iloc[center_beg]
+                price_sym_day_std.iloc[center_end:] = price_sym_day_std.iloc[center_end - 1]
 
                 left_con = (price_sym_day - price_sym_day_mean).abs()
                 right_con = 3 * price_sym_day_std + y
 
-                outlier_con_sym_day = left_con > right_con
-                outlier_num_sym += outlier_con_sym_day.sum()
-
-                not_outlier_con_sym_day = left_con < right_con
-                not_outlier_sym = not_outlier_sym.append(not_outlier_con_sym_day)
+                outlier_num_sym += (left_con > right_con).sum()
+                not_outlier_sym = not_outlier_sym.append(left_con < right_con)
 
             if count == 1:
 
@@ -447,7 +451,6 @@ def clean_heuristic_trades(output_, symbol_list_, date_list_):
         not_outlier_series = not_outlier_series.append(not_outlier_sym_f)
 
     return not_outlier_series
-
 
 # Compute the filter to clean the data from unwanted 'tr_corr' and 'tr_scond'
 

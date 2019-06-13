@@ -577,7 +577,7 @@ print(nan_frame)
 
 section('Resampled data')
 
-print_output(output_=output_resampled_f, print_output_flag_=args.print_output, head_flag_=False)
+print_output(output_=output_resampled_f, print_output_flag_=args.print_output, head_flag_=True)
 
 
 # Display the final plots of the queried trades

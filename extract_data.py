@@ -22,10 +22,13 @@ import pandas as pd
 import pandas_market_calendars as mcal
 import matplotlib.pyplot as plt
 import time
+import os
+
 
 # Time execution
 
 start = time.time()
+
 
 # Import the functions from the functions file
 
@@ -599,24 +602,92 @@ if args.graph_output:
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 
-# Create a dataframe of price series
+# Create a dataframe containing the series of prices, returns, moving average returns
 
-unique_index = (output_resampled_f.index).unique()
-unique_index_len = len(unique_index)
-data = pd.DataFrame(index=unique_index, columns=symbol_list)
-
-for i, symbol in enumerate(symbol_list):
-
-    data[symbol] = output_resampled_f.iloc[i * unique_index_len:(i + 1) * unique_index_len]['price']
-
-
-# Create a dataframe of continuous return moving averages
-
-data_return = pd.DataFrame(np.diff(np.log(data), axis=0), index=unique_index[1:])
-data = data.iloc[1:, :]
-
+len_symbol_index = len((output_resampled_f.index).unique())
 l = 100
-data_return_ma = data_return.rolling(l).mean() # TODO: This formula is not correct
+
+for i, symbol in enumerate(symbol_list): # i = 0  symbol = 'AAPL'
+
+    data = pd.DataFrame(output_resampled_f.iloc[i * len_symbol_index:(i + 1) * len_symbol_index]['price'])
+    temporary_var = np.diff(np.log(data['price']))
+    data = data.iloc[1:]
+    data['return'] = temporary_var
+    del temporary_var
+    data['return_ma'] = data['return'].rolling(l).mean() # TODO: This formula is not correct
+
+    X = []
+    Y = []
+
+    for pos in range(l, data.shape[0]): # pos = l
+
+        y = data.iloc[pos]['return'] # 100
+        Y.append(y)
+
+        data_past = pd.DataFrame(data.iloc[pos - l: pos], copy=True) # 99
+        r_past = data_past['return']
+        r_past_ma = data_past.iloc[-1]['return_ma']
+        r_diff = r_past - r_past_ma
+        data_past['r_diff_2'] = r_diff ** 2
+        data_past['r_diff_3'] = r_diff ** 3
+        data_past['r_diff_4'] = r_diff ** 4
+        X.append(data_past[['return', 'r_diff_2', 'r_diff_3', 'r_diff_4']])
+
+    X = pd.concat(X, ignore_index=True)
+    Y = pd.DataFrame(Y, columns=['label'])
+
+
+    # Define the training, validation and test datasets
+
+    n_train = int(Y.shape[0] * 0.8)
+    X_train = pd.DataFrame(X.iloc[:n_train * l], copy=True)
+    Y_train = pd.DataFrame(Y.iloc[:n_train], copy=True)
+
+    n_valid = n_train + int(Y.shape[0] * 0.1)
+    X_valid = pd.DataFrame(X.iloc[n_train * l: n_valid * l], copy=True)
+    Y_valid = pd.DataFrame(Y.iloc[n_train: n_valid], copy=True)
+
+    X_test = pd.DataFrame(X.iloc[n_valid * l:], copy=True)
+    Y_test = pd.DataFrame(Y.iloc[n_valid], copy=True)
+
+
+    # Standardize the training, validation and test datasets
+
+    for column in X_train.columns:
+
+        column_mean = X_train[column].mean()
+        column_std = X_train[column].std()
+
+        X_train[column] = (X_train - column_mean ) / column_std
+        X_valid[column] = (X_valid - column_mean ) / column_std
+        X_test[column] = (X_test - column_mean) / column_std
+
+    Y_mean = Y_train.mean() # TODO: does it make sense to standardize targets?
+    Y_std = Y_train.std()
+
+    Y_train = (Y_train - Y_mean) / Y_std
+    Y_valid = (Y_valid - Y_mean) / Y_std
+    Y_test = (Y_test - Y_mean) / Y_std
+
+    # Save the training, validation and test datasets
+
+    if not os.path.isdir(symbol):
+
+        os.mkdir(symbol)
+
+    symbol_l = '{}/{}/'.format(symbol, l)
+
+    if not os.path.isdir(symbol_l):
+
+        os.mkdir(symbol_l)
+
+    X_train.to_csv(symbol_l + 'X_train.csv', index=False)
+    X_valid.to_csv(symbol_l + 'X_valid.csv', index=False)
+    X_test.to_csv(symbol_l + 'X_test.csv', index=False)
+
+    Y_train.to_csv(symbol_l + 'Y_train.csv', index=False)
+    Y_valid.to_csv(symbol_l + 'Y_valid.csv', index=False)
+    Y_test.to_csv(symbol_l + 'Y_test.csv', index=False)
 
     
     

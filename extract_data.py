@@ -4,7 +4,7 @@
     times from the wrds database.
 
     Contact: nicolo.ceneda@student.unisg.ch
-    Last update: 10 June 2019
+    Last update: 25 June 2019
 
 """
 
@@ -29,7 +29,7 @@ start = time.time()
 
 # Import the functions from the functions file
 
-from extract_data_functions import section, graph_output, graph_comparison, print_output
+from extract_data.extract_data_functions import section, graph_output, graph_comparison, print_output
 
 
 # Set the displayed size of pandas objects
@@ -595,6 +595,45 @@ if args.graph_output:
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
+# TRAINING, VALIDATION, TEST SETS
+# ------------------------------------------------------------------------------------------------------------------------------------------
+
+
+# Create a dataframe of price series
+
+unique_index = (output_resampled_f.index).unique()
+unique_index_len = len(unique_index)
+data = pd.DataFrame(index=unique_index, columns=symbol_list)
+
+for i, symbol in enumerate(symbol_list):
+
+    data[symbol] = output_resampled_f.iloc[i * unique_index_len:(i + 1) * unique_index_len]['price']
+
+
+# Create a dataframe of continuous return moving averages
+
+data_return = pd.DataFrame(np.diff(np.log(data), axis=0), index=unique_index[1:])
+data = data.iloc[1:, :]
+
+l = 100
+data_return_ma = data_return.rolling(l).mean() # TODO: This formula is not correct
+
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+# ------------------------------------------------------------------------------------------------------------------------------------------
 # PROGRAM SETUP
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -628,11 +667,4 @@ print(end - start)
 
 # TODO: Addition of dividend and/or split adjustments
 
-# TODO: Filter the data as outlined in the CF File Description Section 3.2
-
-# TODO: Calculation of statistics such as the opening and closing prices from the primary market, the high and low from the consolidated
-#  market, share volume from the primary market, and consolidated share volume.
-
-# TODO: Plot the charts.
-
-# TODO: Solve the suffix for GOOG
+# TODO: Solve the suffix for GOOG: you should pick L not {}

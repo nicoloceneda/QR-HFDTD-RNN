@@ -5,7 +5,7 @@
 *Website*: [www.nicoloceneda.com](http://www.nicoloceneda.com) \
 *Institution*: University of St Gallen \
 *Course*: Master of Banking and Finance \
-*Last update*: 20 May 2019
+*Last update*: 25 May 2019
 
 ## Project Structure
 <pre>
@@ -31,4 +31,4 @@
 └── nasdaq100.xlsx                        <--  List of securities extracted
 </pre>
 
-![z_Original_Aggregated](https://user-images.githubusercontent.com/47401951/58116887-b1b6cb80-7bfd-11e9-9457-cca3e8dd3fea.png)
+![z_Original_Final](https://user-images.githubusercontent.com/47401951/59556228-4de6af00-8fbf-11e9-85b6-92ccfe1f3beb.png)

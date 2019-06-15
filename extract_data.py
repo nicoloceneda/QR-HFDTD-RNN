@@ -605,7 +605,7 @@ for i, symbol in enumerate(symbol_list):
     Y_valid = pd.DataFrame(Y.iloc[n_train: n_valid], copy=True)
 
     X_test = pd.DataFrame(X.iloc[n_valid * l:], copy=True)
-    Y_test = pd.DataFrame(Y.iloc[n_valid], copy=True)
+    Y_test = pd.DataFrame(Y.iloc[n_valid:], copy=True)
 
     # Standardize the training, validation and test datasets
 

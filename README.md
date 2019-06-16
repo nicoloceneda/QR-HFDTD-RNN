@@ -28,6 +28,9 @@
 ├── extract_data_sl.sh                    <--  Wrapper script to execute extract_data.py in 
 │                                              'symbol_list' mode.
 │
+├── htqf_rnn.py                           <--  Heavy tail quantile function via a recurrent neural
+│                                              network
+│
 └── nasdaq100.xlsx                        <--  List of securities extracted
 </pre>
 

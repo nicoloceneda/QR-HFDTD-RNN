@@ -557,7 +557,7 @@ print(nan_frame)
 
 section('Resampled data')
 
-print_output(output_=output_resampled_f, print_output_flag_=args.print_output, head_flag_=True)
+print_output(output_=output_resampled_f, print_output_flag_=args.print_output, head_flag_=False)
 
 
 # Display the final plots of the queried trades
@@ -631,9 +631,9 @@ for i, symbol in enumerate(symbol_list):
         column_mean = X_train[column].mean()
         column_std = X_train[column].std()
 
-        X_train[column] = (X_train - column_mean) / column_std
-        X_valid[column] = (X_valid - column_mean) / column_std
-        X_test[column] = (X_test - column_mean) / column_std
+        X_train[column] = (X_train[column] - column_mean) / column_std
+        X_valid[column] = (X_valid[column] - column_mean) / column_std
+        X_test[column] = (X_test[column] - column_mean) / column_std
 
     Y_mean = Y_train.mean()  # TODO: does it make sense to standardize targets?
     Y_std = Y_train.std()

@@ -97,12 +97,13 @@ if args.debug:
     args.save_output = False
 
     section('You are debugging with: symbol_list: {}; start_date: {}; end_date: {}; start_time: {}; end_time: {}'.format(args.symbol_list,
-                                                                                                                         args.start_date, args.end_date, args.start_time, args.end_time))
+            args.start_date, args.end_date, args.start_time, args.end_time))
 
 else:
 
     section('You are querying with: symbol_list: {}; start_date: {}; end_date: {}; start_time: {}; end_time: {}'.format(args.symbol_list,
-                                                                                                                        args.start_date, args.end_date, args.start_time, args.end_time))
+            args.start_date, args.end_date, args.start_time, args.end_time))
+
 
 # Check the validity of the input symbols and create the list of symbols:
 
@@ -267,7 +268,8 @@ n_obs_table = pd.DataFrame({'symbol': [], 'min_n_obs': [], 'min_n_obs_day': [], 
 
 output = pd.DataFrame([])
 
-remove_dates = []
+remove_dates_1 = []
+remove_dates_2 = []
 
 for count_1, symbol in enumerate(symbol_list):
 
@@ -299,8 +301,9 @@ for count_1, symbol in enumerate(symbol_list):
 
                 else:
 
-                    print('*** WARNING: Symbol {} did not trade on date {}: the warning has been recorded to "warning_queried_trades".'
-                          .format(symbol, pd.to_datetime(date).strftime('%Y-%m-%d')))
+                    print('*** WARNING: Symbol {} did not trade on date {}: the date has been removed from date_list; '
+                          'the warning has been recorded to "warning_queried_trades".'.format(symbol, pd.to_datetime(date).strftime('%Y-%m-%d')))
+                    remove_dates_1.append(date)
                     warning_queried_trades.append('{}+{}'.format(symbol, date))
 
             else:
@@ -312,10 +315,24 @@ for count_1, symbol in enumerate(symbol_list):
 
             print('*** WARNING: Could not find the table ctm_{} in the table list: the date has been removed from date_list; '
                   'the warning has been recorded to "warning_ctm_date".'.format(date))
-            remove_dates.append(date)
+            remove_dates_2.append(date)
             warning_ctm_date.append(date)
 
-    date_list = [d for d in date_list if d not in remove_dates]
+    date_list = [d for d in date_list if d not in remove_dates_2]
+
+    if len(date_list) == 0:
+
+        print('\n*** ERROR: Could not find any table in the table list.')
+        exit()
+
+date_list = [d for d in date_list if d not in list(set(remove_dates_1))]
+
+if len(date_list) == 0:
+
+    print('\n*** ERROR: No symbol traded on the chosen dates.')
+    exit()
+
+print('\nThe updated parameters are: symbol_list: {}; date_list: {}'.format(args.symbol_list, date_list))
 
 
 # Display the log of the warnings
@@ -376,49 +393,50 @@ outlier_frame['symbol'] = pd.Series(symbol_list)
 
 not_outlier_series = pd.Series([])
 
-for pos, symbol in enumerate(symbol_list):
+for pos, symbol in enumerate(symbol_list): # pos = 0, symbol = 'TSLA'
 
     count = 0
 
-    for k, y in ky_array:
+    for k, y in ky_array: # k = 41.0 y = 0.02
 
         count += 1
         outlier_num_sym = 0
         not_outlier_sym = pd.Series([])
 
-        for date in date_list:
+        perc_b = int(k * delta)  # 4
+        perc_t = int(k * (1 - delta) + 1)  # 37
+
+        for date in date_list: # date = '20190325'
 
             price_sym_day = output.loc[(output['sym_root'] == symbol) & (pd.to_datetime(output['date']) == pd.to_datetime(date)), 'price']
 
-            center_beg = int((k - 1) / 2)
-            center_end = int(len(price_sym_day)) - center_beg
-            perc_b = int(k * delta)
-            perc_t = int(k * (1 - delta) + 1)
+            center_beg = int((k - 1) / 2) # 20
+            center_end = int(len(price_sym_day)) - center_beg # 6691
 
-            window = np.sort(price_sym_day[:int(k)])
+            window = np.sort(price_sym_day[:int(k)]) # :40
             mean_rolling = np.repeat(np.nan, len(price_sym_day))
             std_rolling = np.repeat(np.nan, len(price_sym_day))
 
-            for i in range(center_beg, center_end):
+            for i in range(center_beg, center_end): # [0:19] 20 -> 6690 [6691:6710]
 
-                mean_rolling[i] = window[perc_b:perc_t].mean()
+                mean_rolling[i] = window[perc_b:perc_t].mean() # [0,1,2,3] 4->36 [37,38,39,40] |
                 std_rolling[i] = window[perc_b:perc_t].std()
 
-                if i < center_end - 1:
-                    idx_drop = np.searchsorted(window, price_sym_day[i - center_beg])
-                    window[idx_drop] = price_sym_day[i + center_beg + 1]
+                if i < center_end - 1: # 6690
+                    idx_drop = np.searchsorted(window, price_sym_day[i - center_beg]) # 0 | 158
+                    window[idx_drop] = price_sym_day[i + center_beg + 1] # 41 | 199
                     window.sort()
 
             price_sym_day_mean = pd.Series(mean_rolling, index=price_sym_day.index)
             price_sym_day_std = pd.Series(std_rolling, index=price_sym_day.index)
 
             price_sym_day_mean.iloc[:center_beg] = price_sym_day_mean.iloc[center_beg]
-            price_sym_day_mean.iloc[center_end:] = price_sym_day_mean.iloc[center_end - 1]
+            price_sym_day_mean.iloc[center_end:] = price_sym_day_mean.iloc[center_end-1]
             price_sym_day_std.iloc[:center_beg] = price_sym_day_std.iloc[center_beg]
-            price_sym_day_std.iloc[center_end:] = price_sym_day_std.iloc[center_end - 1]
+            price_sym_day_std.iloc[center_end:] = price_sym_day_std.iloc[center_end-1]
 
             left_con = (price_sym_day - price_sym_day_mean).abs()
-            right_con = 3 * price_sym_day_std + y
+            right_con = (3 * price_sym_day_std) + y
 
             outlier_num_sym += (left_con > right_con).sum()
             not_outlier_sym = not_outlier_sym.append(left_con < right_con)

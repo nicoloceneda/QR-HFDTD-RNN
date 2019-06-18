@@ -43,6 +43,27 @@ class HtqfRnn(object):
         self.learning_rate = learning_rate
         self.a = a
 
+        # Import data
+
+        data_folder = 'bg/{}/{}/'.format(self.symbol, self.elle)
+
+        self.X_train = pd.read_csv(data_folder + 'X_train.csv').values.reshape(-1, self.elle, self.n_features)
+        self.X_valid = pd.read_csv(data_folder + 'X_valid.csv').values.reshape(-1, self.elle, self.n_features)
+
+        self.Y_train = pd.read_csv(data_folder + 'Y_train.csv').values
+        self.Y_valid = pd.read_csv(data_folder + 'Y_valid.csv').values
+
+        self.X_test = pd.read_csv(data_folder + 'X_test.csv').values.reshape(-1, self.elle, self.n_features)
+        self.Y_test = pd.read_csv(data_folder + 'Y_test.csv').values
+
+        # Generate the probability and quantile levels
+
+        self.tau_long = np.concatenate(([0.01], np.arange(0.05, 1, 0.05), [0.99])).reshape(1, -1)
+        self.tau_long_q = scipy.stats.norm.ppf(self.tau_long)
+
+        self.tau_short = np.array([0.01, 0.05, 0.10]).reshape(1, -1)
+        self.tau_short_q = scipy.stats.norm.ppf(self.tau_short).reshape(1, -1)
+
         # Build the computational graph
 
         tf.set_random_seed(123)
@@ -102,20 +123,6 @@ class HtqfRnn(object):
 
     def train(self):
 
-        data_folder = 'bg/{}/{}/'.format(self.symbol, self.elle)
-
-        X_train = pd.read_csv(data_folder + 'X_train.csv').values.reshape(-1, self.elle, self.n_features)
-        X_valid = pd.read_csv(data_folder + 'X_valid.csv').values.reshape(-1, self.elle, self.n_features)
-
-        Y_train = pd.read_csv(data_folder + 'Y_train.csv').values
-        Y_valid = pd.read_csv(data_folder + 'Y_valid.csv').values
-
-        tau_long = np.concatenate(([0.01], np.arange(0.05, 1, 0.05), [0.99])).reshape(1, -1)
-        tau_long_q = scipy.stats.norm.ppf(tau_long)
-
-        tau_short = np.array([0.01, 0.05, 0.10]).reshape(1, -1)
-        tau_short_q = scipy.stats.norm.ppf(tau_short).reshape(1, -1)
-
         with tf.Session(graph=self.g) as sess:
 
             sess.run(self.init)
@@ -125,91 +132,90 @@ class HtqfRnn(object):
 
                 var.load(0.1 * np.random.randn(*sess.run(tf.shape(var))))                                                                   # TODO: inq: load
 
-            start_time = datetime.now()
-            max_valid_date = 1e8
+            self.start_time = datetime.now()
+            last_valid_loss = 1e8
             record_variables = []
-            record_valid_date = []
+            record_valid_loss = []
 
             pos = 0
 
-            for batch, step in enumerate(range(Y_train.shape[0])):                                                                          # TODO: generalize
+            for batch in range(self.Y_train.shape[0]):                                                                                      # TODO: generalize
 
-                feed_dict_train = {'X:0': X_train[batch, :, :], 'Y:0': Y_train[batch], 'tau_tf:0': tau_long, 'z_tf:0': tau_long_q}          # TODO: generalize keep proba
-                sess.run('train', feed_dict=feed_dict_train)
+                feed_dict_train_batch = {'X:0': self.X_train[batch, :, :], 'Y:0': self.Y_train[batch], 'tau_tf:0': self.tau_long, 'z_tf:0': self.tau_long_q} # TODO: generalize keep proba
+                sess.run('train', feed_dict=feed_dict_train_batch)
+
+                feed_dict_valid_set = {'X:0': self.X_valid, 'Y:0': self.Y_valid, 'tau_tf:0': self.tau_long, 'z_tf:0': self.tau_long_q}
+                record_valid_loss.append(sess.run('loss:0', feed_dict=feed_dict_valid_set))
 
                 record_variables.append([sess.run(var) for var in tf.trainable_variables()])
 
-                feed_dict_loss = {'X:0': X_valid[batch, :, :], 'Y:0': Y_valid[batch], 'tau_tf:0': tau_long, 'z_tf:0': tau_long_q}
-                record_valid_date.append(sess.run('loss:0', feed_dict=feed_dict_loss))
+                if batch % 100 == 0:
 
+                    feed_dict_train_set = {'X:0': self.X_train, 'Y:0': self.Y_train, 'tau_tf:0': self.tau_long, 'z_tf:0': self.tau_long_q}
+                    print('\nbatch: ', batch, ' | Loss training set: ', sess.run('loss:0', feed_dict=feed_dict_train_set), ' | Loss validation set', record_valid_loss[-1])
+
+                    if record_valid_loss[-1] > last_valid_loss:
+
+                        min_loss = np.argmin(last_valid_loss)
+
+                        for var, value in zip(tf.trainable_variables(), record_variables[min_loss]):
+
+                            var.load(value)
+
+                        break
+
+                    else:
+
+                        last_valid_loss = record_valid_loss[-1]
+                        record_valid_loss = [last_valid_loss]
+                        record_variables = [record_variables[-1]]
+
+    def predict(self):
+
+        with tf.Session(graph=self.g) as sess:
+
+            q_record_train = sess.run('quantile:0', feed_dict={'X:0': self.X_train, 'Y:0': self.Y_train, 'tau_tf:0': self.tau_long, 'z_tf:0': self.tau_long_q})
+            parameters_record_train = sess.run('parameters', feed_dict={'X:0': self.X_train, 'Y:0': self.Y_train, 'tau_tf:0': self.tau_long, 'z_tf:0': self.tau_long_q})
+
+            q_record_test = sess.run('quantile:0', feed_dict={'X:0': self.X_test, 'Y:0': self.Y_test, 'tau_tf:0': self.tau_long, 'z_tf:0': self.tau_long_q})
+            parameters_record_test = sess.run('parameters', feed_dict={'X:0': self.X_test, 'Y:0': self.Y_test, 'tau_tf:0': self.tau_long, 'z_tf:0': self.tau_long_q})
+
+            result_folder = '{}/LSTM-HTQF_{}_{}/'.format(self.symbol, self.elle, self.hidden_layer_dim)
+
+            if not os.path.isdir(result_folder):
+
+                os.mkdir(result_folder)
+
+            pd.DataFrame(q_record_train, columns=self.tau_long.tolist()[0]).to_csv(result_folder + "q_record_train.csv", index=False)
+            pd.DataFrame(parameters_record_train, columns=['mu', 'sigma', 'u', 'v']).to_csv(result_folder + "parameters_record_train.csv", index=False)
+            pd.DataFrame(q_record_test, columns=self.tau_long.tolist()[0]).to_csv(result_folder + "q_record_test.csv", index=False)
+            pd.DataFrame(parameters_record_test, columns=['mu', 'sigma', 'u', 'v']).to_csv(result_folder + "parameters_record_test.csv", index=False)
+
+            with open(result_folder + "print.txt", 'w') as file:
+
+                file.write("\nTime Cost: {:.2f} Minutes\n".format((datetime.now() - self.start_time).total_seconds() / 60.))
+                file.write("My Validate Performance: {}\n".format(sess.run('loss:0', feed_dict={'X:0': self.X_valid, 'Y:0': self.Y_valid, 'tau_tf:0': self.tau_long, 'z_tf:0': self.tau_long_q})))
+                file.write("My Test Performance: {}\n".format(sess.run('loss:0', feed_dict={'X:0': self.X_test, 'Y:0': self.Y_test, 'tau_tf:0': self.tau_long, 'z_tf:0': self.tau_long_q})))
+                file.write("New Test Performance: {}\n".format(sess.run('loss:0', feed_dict={'X:0': self.X_test, 'Y:0': self.Y_test, 'tau_tf:0': self.tau_short, 'z_tf:0': self.tau_short_q})))
+                file.write("Sequence Length: {}, Hidden Dimension: {}\n\n".format(self.elle, self.hidden_layer_dim))
+                file.write("================================================================\n")
 
 AAPL = HtqfRnn(symbol='AAPL', elle=100, n_features=4, hidden_layer_dim=16, output_layer_dim=4, num_layers=1, epochs=5, learning_rate=0.001, a=4)
 
-# Import the training, validation and test data
-
-X_test = pd.read_csv(data_folder + 'X_test.csv').values.reshape(-1, self.elle, self.n_features)
-
-
-Y_test = pd.read_csv(data_folder + 'Y_test.csv').values
-
-# Sets of tau probability levels and corresponding percentiles for training and test
 
 
 
 
 
-        for step in range(10001):
 
-            sess.run(train, feed_dict={X: X_train[batch_list[ibatch], :, :], Y: Y_train[batch_list[ibatch]], tau: tau_full, perc: tau_full_perc})
-            ibatch = ibatch + 1 if ibatch + 1 < epochs else 0
-            record_variables.append([sess.run(variable) for variable in tf.trainable_variables()])
-            record_valid_date.append(sess.run(loss, feed_dict={X: X_valid, Y: Y_valid, tau: tau_full, perc: tau_full_perc}))
 
-            if step % 100 == 0:
 
-                print(step, sess.run(loss, feed_dict={X: X_train, Y: Y_train, tau: tau_full, perc: tau_full_perc}), record_valid_date[-1])
 
-                if record_valid_date[-1] > max_valid_date:
 
-                    min_I = np.argmin(record_valid_date)
 
-                    for variable, value in zip(tf.trainable_variables(), record_variables[minI]):
 
-                        variable.load(value)
 
-                    break
 
-                else:
-
-                    max_valid_date = record_valid_date[-1]
-                    record_variables = [record_variables[-1]]
-                    record_valid_date = [record_valid_date[-1]]
-
-        Q_record_train = sess.run(Q, feed_dict={X: X_train, Y: Y_train, tau: tau_full, perc: tau_full_perc})
-        params_record_train = sess.run(params, feed_dict={X: X_train, Y: Y_train, tau: tau_full, perc: tau_full_perc})
-        Q_test_train = sess.run(Q, feed_dict={X: X_test, Y: Y_test, tau: tau_full, perc: tau_full_perc})
-        params_record_test = sess.run(params, feed_dict={X: X_test, Y: Y_test, tau: tau_full, perc: tau_full_perc})
-
-        result_folder = '{}/LSTM-HTQF_{}_{}/'.format(symbol, l, hidden_layer_dim)
-
-        if not os.path.isdir(result_folder):
-
-            os.mkdir(result_folder)
-
-        pd.DataFrame(Q_record_train, columns=perc.tolist()[0]).to_csv(result_folder + "Qrecord_train.csv", index=False)
-        pd.DataFrame(params_record_train, columns=['mu', 'sigma', 'u', 'v']).to_csv(result_folder + "paramsRecord_train.csv", index=False)
-        pd.DataFrame(Q_test_train, columns=perc.tolist()[0]).to_csv(result_folder + "Qrecord_test.csv", index=False)
-        pd.DataFrame(params_record_test, columns=['mu', 'sigma', 'u', 'v']).to_csv(result_folder + "paramsRecord_test.csv", index=False)
-
-        with open(result_folder + "print.txt", 'w') as file:
-
-            file.write("\nTime Cost: {:.2f} Minutes\n".format((datetime.now() - start_time).total_seconds() / 60.))
-            file.write("My Validate Performance: {}\n".format(sess.run(loss, feed_dict={X: X_valid, Y: Y_valid, tau: tau_full, perc: tau_full_perc})))
-
-            file.write("My Test Performance: {}\n".format(sess.run(loss, feed_dict={X: X_test, Y: Y_test, tau: tau_full, perc: tau_full_perc})))
-            file.write("New Test Performance: {}\n".format(sess.run(loss, feed_dict={X: X_test, Y: Y_test, tau: tau_new, perc: tau_new_perc})))
-            file.write("Sequence Length: {}, Hidden Dimension: {}\n\n".format(l, hidden_layer_dim))
-            file.write("================================================================\n")
 
 
 

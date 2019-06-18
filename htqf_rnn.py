@@ -134,9 +134,13 @@ class HtqfRnn(object):
 
             for batch, step in enumerate(range(Y_train.shape[0])):                                                                          # TODO: generalize
 
-                sess.run('train', feed_dict={'X:0': X_train[batch, :, :], 'Y:0': Y_train[batch], 'tau_tf:0': tau_long, 'z_tf:0': tau_long_q}) # TODO: generalize keep proba
+                feed_dict_train = {'X:0': X_train[batch, :, :], 'Y:0': Y_train[batch], 'tau_tf:0': tau_long, 'z_tf:0': tau_long_q}          # TODO: generalize keep proba
+                sess.run('train', feed_dict=feed_dict_train)
+
                 record_variables.append([sess.run(var) for var in tf.trainable_variables()])
-                record_valid_date.append()
+
+                feed_dict_loss = {'X:0': X_valid[batch, :, :], 'Y:0': Y_valid[batch], 'tau_tf:0': tau_long, 'z_tf:0': tau_long_q}
+                record_valid_date.append(sess.run('loss:0', feed_dict=feed_dict_loss))
 
 
 AAPL = HtqfRnn(symbol='AAPL', elle=100, n_features=4, hidden_layer_dim=16, output_layer_dim=4, num_layers=1, epochs=5, learning_rate=0.001, a=4)

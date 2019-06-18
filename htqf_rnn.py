@@ -110,6 +110,12 @@ class HtqfRnn(object):
         Y_train = pd.read_csv(data_folder + 'Y_train.csv').values
         Y_valid = pd.read_csv(data_folder + 'Y_valid.csv').values
 
+        tau_long = np.concatenate(([0.01], np.arange(0.05, 1, 0.05), [0.99])).reshape(1, -1)
+        tau_long_q = scipy.stats.norm.ppf(tau_long)
+
+        tau_short = np.array([0.01, 0.05, 0.10]).reshape(1, -1)
+        tau_short_q = scipy.stats.norm.ppf(tau_short).reshape(1, -1)
+
         with tf.Session(graph=self.g) as sess:
 
             sess.run(self.init)
@@ -124,17 +130,13 @@ class HtqfRnn(object):
             record_variables = []
             record_valid_date = []
 
-            batch_list = self.allocate_batch(Y_train)
-
             pos = 0
 
-            for step in range(10001):                                                                                                       # TODO: generalize
+            for batch, step in enumerate(range(Y_train.shape[0])):                                                                          # TODO: generalize
 
-                feed = {'X:0': X_train[batch_list[pos], :, :], 'Y:0': Y_train[batch_list[pos]], 'tau:0': self.tau_long,
-                        'percent:0': self.tau_long_percent, 'keep_prob:0': 0.5}
-                loss, _ = sess.run(['loss:0', 'train'], feed_dict=feed)                                                                     # TODO: generalize keep proba
-
-
+                sess.run('train', feed_dict={'X:0': X_train[batch, :, :], 'Y:0': Y_train[batch], 'tau_tf:0': tau_long, 'z_tf:0': tau_long_q}) # TODO: generalize keep proba
+                record_variables.append([sess.run(var) for var in tf.trainable_variables()])
+                record_valid_date.append()
 
 
 AAPL = HtqfRnn(symbol='AAPL', elle=100, n_features=4, hidden_layer_dim=16, output_layer_dim=4, num_layers=1, epochs=5, learning_rate=0.001, a=4)
@@ -148,11 +150,7 @@ Y_test = pd.read_csv(data_folder + 'Y_test.csv').values
 
 # Sets of tau probability levels and corresponding percentiles for training and test
 
-self.tau_long = np.concatenate(([0.01], np.arange(0.05, 1, 0.05), [0.99])).reshape(1, -1)
-self.tau_long_percent = scipy.stats.norm.ppf(self.tau_long)
 
-self.tau_short = np.array([0.01, 0.05, 0.10]).reshape(1, -1)
-self.tau_short_percent = scipy.stats.norm.ppf(self.tau_short).reshape(1, -1)
 
 
 

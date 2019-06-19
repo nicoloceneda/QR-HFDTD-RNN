@@ -624,12 +624,13 @@ for i, symbol in enumerate(symbol_list):
     Y_valid = pd.DataFrame(Y.iloc[n_train: n_valid], copy=True)
 
     n_test = n_valid + int(Y.shape[0] * 0.1)
-    X_test = pd.DataFrame(X.iloc[n_valid * elle:], copy=True)
-    Y_test = pd.DataFrame(Y.iloc[n_valid:], copy=True)
+    X_test = pd.DataFrame(X.iloc[n_valid * elle: n_test * elle:], copy=True)
+    Y_test = pd.DataFrame(Y.iloc[n_valid: n_test], copy=True)
 
     # Standardize the training, validation and test datasets
 
     for column in X_train.columns:
+
         column_mean = X_train[column].mean()
         column_std = X_train[column].std()
 
@@ -647,11 +648,13 @@ for i, symbol in enumerate(symbol_list):
     # Save the training, validation and test datasets
 
     if not os.path.isdir(symbol):
+
         os.mkdir(symbol)
 
     symbol_l = '{}/{}/'.format(symbol, elle)
 
     if not os.path.isdir(symbol_l):
+
         os.mkdir(symbol_l)
 
     X_train.to_csv(symbol_l + 'X_train.csv', index=False)

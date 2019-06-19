@@ -580,7 +580,7 @@ if args.graph_output:
 # Create a dataframe containing the series of prices, returns, moving average returns
 
 len_symbol_index = len(output_resampled_f.index.unique())
-l = 100
+elle = 100
 
 for i, symbol in enumerate(symbol_list):
 
@@ -591,16 +591,17 @@ for i, symbol in enumerate(symbol_list):
     data = data.iloc[1:]
     data['return'] = temporary_var
     del temporary_var
-    data['return_ma'] = data['return'].rolling(l).mean()  # TODO: This formula is not correct
+    data['return_ma'] = data['return'].rolling(elle).mean()  # TODO: This formula is not correct
 
     X = []
     Y = []
 
-    for pos in range(l, data.shape[0]):
-        y = data.iloc[pos]['return']
+    for pos in range(elle, data.shape[0]): # 100 -> 199
+
+        y = data.iloc[pos]['return'] # 100 | 101
         Y.append(y)
 
-        data_past = pd.DataFrame(data.iloc[pos - l: pos], copy=True)
+        data_past = pd.DataFrame(data.iloc[pos - elle: pos], copy=True) # 0:99 | 1:100 -> 99:198
         r_past = data_past['return']
         r_past_ma = data_past.iloc[-1]['return_ma']
         r_diff = r_past - r_past_ma
@@ -615,14 +616,15 @@ for i, symbol in enumerate(symbol_list):
     # Define the training, validation and test datasets
 
     n_train = int(Y.shape[0] * 0.8)
-    X_train = pd.DataFrame(X.iloc[:n_train * l], copy=True)
+    X_train = pd.DataFrame(X.iloc[:n_train * elle], copy=True)
     Y_train = pd.DataFrame(Y.iloc[:n_train], copy=True)
 
     n_valid = n_train + int(Y.shape[0] * 0.1)
-    X_valid = pd.DataFrame(X.iloc[n_train * l: n_valid * l], copy=True)
+    X_valid = pd.DataFrame(X.iloc[n_train * elle: n_valid * elle], copy=True)
     Y_valid = pd.DataFrame(Y.iloc[n_train: n_valid], copy=True)
 
-    X_test = pd.DataFrame(X.iloc[n_valid * l:], copy=True)
+    n_test = n_valid + int(Y.shape[0] * 0.1)
+    X_test = pd.DataFrame(X.iloc[n_valid * elle:], copy=True)
     Y_test = pd.DataFrame(Y.iloc[n_valid:], copy=True)
 
     # Standardize the training, validation and test datasets
@@ -647,7 +649,7 @@ for i, symbol in enumerate(symbol_list):
     if not os.path.isdir(symbol):
         os.mkdir(symbol)
 
-    symbol_l = '{}/{}/'.format(symbol, l)
+    symbol_l = '{}/{}/'.format(symbol, elle)
 
     if not os.path.isdir(symbol_l):
         os.mkdir(symbol_l)
@@ -695,5 +697,4 @@ print(end - start)
 
 
 # TODO: Addition of dividend and/or split adjustments
-# TODO: check values of r - rma
-# TODO: check why just 1 value in validation
+

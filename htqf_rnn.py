@@ -15,62 +15,66 @@
 
 # Import the libraries and the modules
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import scipy.stats
-import os
 import tensorflow as tf
 from datetime import datetime
+import os
 
 
-# Create a function to
+# Create the HtqfRnn class
 
 # TODO: generalize all the parameters
 # TODO: extend the class to run also the data_extract process
 
 class HtqfRnn(object):
 
-    def __init__(self, symbol, num_batches, elle, n_features, hidden_layer_dim, output_layer_dim, num_layers, epochs, learning_rate, a):
+    # Constructor
+
+    def __init__(self, symbol, elle, n_features, hidden_layer_dim, output_layer_dim, num_layers, epochs, learning_rate, a):
+
+        # Initialize class variables
 
         self.symbol = symbol
-        self.num_batches = num_batches
         self.elle = elle
         self.n_features = n_features
         self.hidden_layer_dim = hidden_layer_dim
         self.output_layer_dim = output_layer_dim
         self.num_layers = num_layers
-        self.epochs = epochs
+        self.n_epochs = n_epochs
         self.learning_rate = learning_rate
         self.a = a
 
-        # Import data
+        # Import training, validation and test sets
 
-        data_folder = 'bg/{}/{}/'.format(self.symbol, self.elle)
+        data_folder = 'sl/{}/{}/'.format(self.symbol, self.elle)
 
         self.X_train = pd.read_csv(data_folder + 'X_train.csv').values.reshape(-1, self.elle, self.n_features)
-        self.X_valid = pd.read_csv(data_folder + 'X_valid.csv').values.reshape(-1, self.elle, self.n_features)
-
         self.Y_train = pd.read_csv(data_folder + 'Y_train.csv').values
+
+        self.X_valid = pd.read_csv(data_folder + 'X_valid.csv').values.reshape(-1, self.elle, self.n_features)
         self.Y_valid = pd.read_csv(data_folder + 'Y_valid.csv').values
 
         self.X_test = pd.read_csv(data_folder + 'X_test.csv').values.reshape(-1, self.elle, self.n_features)
         self.Y_test = pd.read_csv(data_folder + 'Y_test.csv').values
 
-        # Generate the probability and quantile levels
+        # Generate probability levels and corresponding quantiles for a standard normal
 
         self.tau_long = np.concatenate(([0.01], np.arange(0.05, 1, 0.05), [0.99])).reshape(1, -1)
-        self.tau_long_q = scipy.stats.norm.ppf(self.tau_long)
+        self.z_long = scipy.stats.norm.ppf(self.tau_long)
 
         self.tau_short = np.array([0.01, 0.05, 0.10]).reshape(1, -1)
-        self.tau_short_q = scipy.stats.norm.ppf(self.tau_short).reshape(1, -1)
+        self.z_short = scipy.stats.norm.ppf(self.tau_short).reshape(1, -1)
 
         # Build the computational graph
-
-        tf.set_random_seed(123)
 
         self.g = tf.Graph()
 
         with self.g.as_default():
+
+            tf.set_random_seed(123)
+            self.saver = tf.train.Saver()
 
             # Placeholders, variables constants
 
@@ -78,21 +82,26 @@ class HtqfRnn(object):
             Y_tf = tf.placeholder(dtype=tf.float32, shape=(None, 1), name='Y_tf')
             tau_tf = tf.placeholder(dtype=tf.float32, shape=(1, None), name='tau_tf')
             z_tf = tf.placeholder(dtype=tf.float32, shape=(1, None), name='z_tf')
+            keep_prob_tf = tf.placeholder(dtype=tf.float32, name='tf_prob')
 
             w_out_tf = tf.Variable(tf.random_normal(shape=(self.hidden_layer_dim, self.output_layer_dim)), dtype=tf.float32)
             b_out_tf = tf.Variable(tf.random_normal(shape=(1, self.output_layer_dim)), dtype=tf.float32)
 
-            self.init = tf.global_variables_initializer()
+            self.init_op = tf.global_variables_initializer()
 
             add_constant_tf = tf.constant([0, 1, 1, 1], dtype=tf.float32, shape=(1, 4), name='add_constant_tf')                             # TODO: inq
 
             # LSTM RNN
 
             cells_one_layer = tf.nn.rnn_cell.LSTMCell(num_units=self.hidden_layer_dim, name='cells_one_layer')                              # TODO: use cuda for GPu performance
-            outputs_lstm, state_lstm, = tf.nn.dynamic_rnn(cell=cells_one_layer, inputs=X_tf, dtype=tf.float32)                              # TODO add more layers
-                                                                                                                                            # TODO: use keras.layers.RNN
-            # Output
+            cells_drop_out = tf.nn.rnn_cell.DropoutWrapper(cell=cells_one_layer, output_keep_prob=keep_prob_tf)
+            cells_all_layer = [cells_drop_out for i in range(self.num_layers)]
+            cells = tf.contrib.rnn.MultiRNNCell(cells=cells_all_layer)                                                                      # TODO: initial state
 
+            self.initial_state = cells.zero_state(batch_size=1, dtype=tf.float32)
+
+            outputs_lstm, self.state_lstm, = tf.nn.dynamic_rnn(cell=cells, inputs=X_tf, dtype=tf.float32)                                        # TODO add more layers
+                                                                                                                                            # TODO: use keras.layers.RNN
             out = tf.tanh(tf.add(tf.matmul(state_lstm.h, w_out_tf), b_out_tf))
             parameters = tf.add(out, add_constant_tf)
 
@@ -110,22 +119,70 @@ class HtqfRnn(object):
 
             # Error
 
-            error = tf.subtract(Y_tf - quantile)
+            error = tf.subtract(Y_tf, quantile)
             pinball_1 = tf.multiply(tau_tf, error)
             pinball_2 = tf.multiply(tau_tf - 1, error)
-            loss = tf.reduce_mean(tf.maximum(pinball_1, pinball_2))                                                                         # TODO: inq max
+            cost = tf.reduce_mean(tf.maximum(pinball_1, pinball_2))                                                                         # TODO: inq max
 
             # Optimization
 
             optimizer = tf.train.AdamOptimizer(self.learning_rate)                                                                          # TODO: inq AdamOptimizer
-            train = optimizer.minimize(loss)
+            train_op = optimizer.minimize(cost, name='train_op')
 
+    # Train method
 
     def train(self):
 
         with tf.Session(graph=self.g) as sess:
 
-            sess.run(self.init)
+            sess.run(self.init_op)
+            iteration = 1
+
+            for epoch in range(self.n_epochs):
+
+                state = sess.run(self.initial_state)
+
+                for batch in range(self.Y_train.shape[0]):
+
+                    feed = {'X_tf:0': self.X_train[batch, :, :], 'Y_tf:0': self.Y_train[batch], 'tau_tf:0': self.tau_long, 'z_tf:0': self.z_long, 'keep_prob_tf:0': 0.5, self.initial_state: state}
+                    loss, _, state = sess.run(['cost:0', 'train_op', self.state_lstm], feed_dict=feed)
+
+                    if iteration % 100 == 0:
+
+                        print("Epoch: {}/{} | Iteration: {} | Train loss: {:.5f}".format(epoch + 1, self.n_epochs, iteration, loss))
+
+                    iteration += 1
+
+                if (epoch + 1) % 10 == 0:
+
+                    self.saver.save(sess, "model/{}_{}.ckpt".format(symbol, epoch))
+
+    def predict(self):
+
+        predictions = []
+
+        with tf.Session(graph=self.g) as sess:
+
+            self.saver.restore(sess, tf.train.latest_checkpoint('model/'))
+            test_state = sess.run(self.initial_state)
+
+            for batch in range(self.Y_train.shape[0]):
+
+                feed = {'X_tf:0': X_train[batch, :, :], 'tau_tf:0': self.tau_long, 'z_tf:0': self.tau_long_q, 'keep_prob_tf:0': 1.0, self.initial_state: test_state}
+
+                if return_probability:
+
+                    pred, test_state = sess.run(['probabilities:0', self.final_state], feed_dict=feed)
+
+                else:
+
+                    pred, test_state = sess.run(['labels:0', self.final_state], feed_dict=feed)
+
+                preds.append(pred)
+
+        return np.concatenate(preds)
+
+
             np.random.seed(0)
 
             for var in tf.trainable_variables():
@@ -203,7 +260,7 @@ class HtqfRnn(object):
 AAPL = HtqfRnn(symbol='AAPL', elle=100, n_features=4, hidden_layer_dim=16, output_layer_dim=4, num_layers=1, epochs=5, learning_rate=0.001, a=4)
 
 
-
+self.saver = tf.train.Saver()
 
 
 

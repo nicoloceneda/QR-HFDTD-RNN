@@ -38,5 +38,5 @@
 
 ## Libraries
 
-To run the code, install the following libraries (and related dependencies) in a virtual environment:
+To run the code, install the following libraries (and related dependencies) in a virtual environment: \\
 numpy, matplotlib

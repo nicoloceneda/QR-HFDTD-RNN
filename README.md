@@ -5,7 +5,7 @@
 *Website*: [www.nicoloceneda.com](http://www.nicoloceneda.com) \
 *Institution*: University of St Gallen \
 *Course*: Master of Banking and Finance \
-*Last update*: 25 May 2019
+*Last update*: 26 February 2020
 
 ## Project Structure
 <pre>
@@ -35,3 +35,8 @@
 </pre>
 
 ![z_Original_Final](https://user-images.githubusercontent.com/47401951/59556228-4de6af00-8fbf-11e9-85b6-92ccfe1f3beb.png)
+
+## Libraries
+
+To run the code, install the following libraries (and related dependencies) in a virtual environment:
+numpy, matplotlib

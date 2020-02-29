@@ -78,3 +78,21 @@ fig.tight_layout()
 plt.savefig('z_logistic_and_cost_functions.png')
 
 
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def fun(x, yi, xi):
+
+    return - yi/ xi * x + yi
+
+x_axis = np.arange(0.2, 10, 0.2)
+y_axis = np.arange(10, 0.2, -0.2)
+
+fig, ax = plt.subplots()
+for xi, yi in zip(x_axis, y_axis):
+
+        x = np.arange(0, xi, 0.01)
+        ax.plot(x, fun(x, yi, xi), color="blue")
+
+

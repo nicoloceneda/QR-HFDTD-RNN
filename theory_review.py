@@ -44,11 +44,11 @@ plt.savefig('images/z_logistic_sigmoid_function.png')
 
 
 # -------------------------------------------------------------------------------
-# 2. APPENDIX C: LOGISTIC SIGMOID COST FUNCTION
+# 2. APPENDIX C: LOGISTIC COST FUNCTION
 # -------------------------------------------------------------------------------
 
 
-# Define the logistic sigmoid cost function
+# Define the logistic cost function
 
 def cost_1(z):
 
@@ -60,7 +60,7 @@ def cost_0(z):
     return - np.log(1 - sigmoid(z))
 
 
-# Plot the logistic sigmoid cost function
+# Plot the logistic cost function
 
 z = np.arange(-10, 10, 0.01)
 phi_z = sigmoid(z)
@@ -72,8 +72,8 @@ ax.plot(phi_z, c1, color="blue", label="J(w) if y=1")
 ax.plot(phi_z, c0, color="red", label="J(w) if y=0")
 ax.set_xlabel(r"$\phi(Z)$", fontsize=11)
 ax.set_ylabel("J(w)")
-ax.set_title("Logistic Sigmoid Function")
+ax.set_title("Logistic Cost Function")
 ax.legend(loc="upper center")
 ax.set_xlim([0, 1])
 ax.set_ylim([0, 5.1])
-plt.savefig('z_logistic_sigmoid_cost_function.png')
+plt.savefig('images/z_logistic_cost_function.png')

@@ -150,19 +150,19 @@ Although WRDS Cloud comes with many pre-installed Python packages, it also allow
 
 my_laptop:my_directory my_name$ ssh my_wrds_username@wrds-cloud.wharton.upenn.edu
 my_wrds_username@wrds-cloud.wharton.upenn.edu's password:
-[my_wrds_username@wrds-cloud-login1-h ~]$ pip3 list
+[my_wrds_username@wrds-cloud-login1-w ~]$ pip3 list
 ```
 
-To install a new package on the WRDS Cloud it is necessary to execute three sequential commands to create a *virtualenv* in the WRDS Cloud home directory from one of the head nodes, activate the *virtualenv*, and download the package needed using `pip`. Note that since the computing nodes are not internet-accessible, it is necessary to use the two head nodes to upload packages to the WRDS Cloud home directory. However, once uploaded, these packages can also be used on the computing nodes.
+To install a new package on the WRDS Cloud it is necessary to execute three sequential commands to create a *virtualenv* in the WRDS Cloud home directory from one of the head nodes, activate the *virtualenv*, and download the package needed using `pip`. Note that since the computing nodes are not internet-accessible, it is necessary to use the two head nodes to upload packages to the WRDS Cloud home directory. However, once installed, these packages can also be used on the computing nodes.
 
 ```
 # Install a Python package (from Terminal):
 
 my_laptop:my_directory my_name$ ssh my_wrds_username@wrds-cloud.wharton.upenn.edu
 my_wrds_username@wrds-cloud.wharton.upenn.edu's password:
-[my_wrds_username@wrds-cloud-login1-h ~]$ virtualenv3 --system-site-packages ~/virtualenv
-[my_wrds_username@wrds-cloud-login1-h ~]$ source ~/virtualenv/bin/activate
-(virtualenv) [my_wrds_username@wrds-cloud-login1-h ~]$ pip3 install your_package
+[my_wrds_username@wrds-cloud-login1-w ~]$ virtualenv3 --system-site-packages ~/virtualenv
+[my_wrds_username@wrds-cloud-login1-w ~]$ source ~/virtualenv/bin/activate
+(virtualenv) [my_wrds_username@wrds-cloud-login1-w ~]$ pip3 install your_package
 ```
 
 ### 1.3.1 - Interactive Jobs

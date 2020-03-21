@@ -32,7 +32,7 @@ Once the interactive session has been initiated, a *pgpass* needs to be set up. 
 ```
 # Create a pgpass file (from Terminal):
 
-[my_wrds_username@wrds-sas5-h ~]$ ipython3
+[my_wrds_username@wrds-sas5-w ~]$ ipython3
 In [1]: import wrds
 In [2]: db = wrds.Connection()
 Enter your WRDS username [my_wrds_username]:
@@ -47,7 +47,7 @@ This will require to enter the WRDS username and password only at the first logi
 ```
 # Establish a connection to WRDS (from Terminal):
 
-[my_wrds_username@wrds-sas5-h ~]$ ipython3
+[my_wrds_username@wrds-sas5-w ~]$ ipython3
 In [1]: import wrds
 In [2]: db = wrds.Connection()
 ```

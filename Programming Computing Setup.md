@@ -194,7 +194,7 @@ source ~/virtualenv/bin/activate
 python3 my_program.py
 ```
 
-### 1.4 - Monitoring and Managing Jobs
+## 1.4 - Monitoring and Managing Jobs
 
 Once an interactive or batch job has been submitted to the WRDS Cloud, it is usually necessary to monitor and manage its status. The following commands allow to do so:
 

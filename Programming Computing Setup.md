@@ -9,7 +9,7 @@ To use the Python software and access WRDS data directly on the cloud, it is nec
 
 my_laptop:my_directory my_name$ ssh my_wrds_username@wrds-cloud.wharton.upenn.edu
 my_wrds_username@wrds-cloud.wharton.upenn.edu's password:
-[my_wrds_username@wrds-cloud-login1-h ~]$
+[my_wrds_username@wrds-cloud-login1-w ~]$
 ```
 
 > To disconnect from the head node (i.e. from the WRDS Cloud), type `logout` in the Terminal.
@@ -19,8 +19,8 @@ For computationally intensive activities, it is necessary to establish a connect
 ```
 # Start an interactive session (from Terminal):
 
-[my_wrds_username@wrds-cloud-login1-h ~]$ qrsh
-[my_wrds_username@wrds-sas5-h ~]$
+[my_wrds_username@wrds-cloud-login1-w ~]$ qrsh
+[my_wrds_username@wrds-sas5-w ~]$
 ```
 
 > To disconnect from the computing node node (and go back to the head node), type `logout` in the Terminal.

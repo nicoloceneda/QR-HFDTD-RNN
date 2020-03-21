@@ -63,17 +63,17 @@ To run interactive jobs, it is necessary to schedule an interactive job with the
 
 my_laptop:my_directory my_name$ ssh my_wrds_username@wrds-cloud.wharton.upenn.edu
 my_wrds_username@wrds-cloud.wharton.upenn.edu's password:
-[my_wrds_username@wrds-cloud-login1-h ~]$ qrsh
-[my_wrds_username@wrds-sas5-h ~]$ ipython3
+[my_wrds_username@wrds-cloud-login1-w ~]$ qrsh
+[my_wrds_username@wrds-sas5-w ~]$ ipython3
 In [1]: import wrds
 In [2]: db = wrds.Connection()
 
-------- Up to here is the setup explained in the previous section -------
+------- Up to here it is the setup explained in the previous section -------
 
 In [3]: db.raw_sql("select time_m, size, price from taqmsec.ctm_20180102 where sym_root = 'AAPL' ")
 In [4]: quit
-[my_wrds_username@wrds-sas5-h ~]$ logout
-[my_wrds_username@wrds-cloud-login1-h ~]$
+[my_wrds_username@wrds-sas5-w ~]$ logout
+[my_wrds_username@wrds-cloud-login1-w ~]$
 ```
 
 The above code creates a `SSH` connection to wrds-cloud.wharton.upenn.edu, submits the interactive job to the Grid Engine, which assigns a computing node (in this case number 5), starts an interactive Python session, imports the `wrds` module, initiates a connection to WRDS, which uses the crdentials in the *pgpass* file, and runs a SQL query.

@@ -172,9 +172,9 @@ Each time you want to use the newly installed package in an interactive job, it 
 ```
 # Activate the virtualenv (from Terminal):
 
-[my_wrds_username@wrds-cloud-login1-h ~]$ qrsh
-[my_wrds_username@wrds-sas5-h ~]$ source ~/virtualenv/bin/activate
-(virtualenv) [my_wrds_username@wrds-sas5-h ~]$ ipython3
+[my_wrds_username@wrds-cloud-login1-w ~]$ qrsh
+[my_wrds_username@wrds-sas5-w ~]$ source ~/virtualenv/bin/activate
+(virtualenv) [my_wrds_username@wrds-sas5-w ~]$ ipython3
 In [1]: import your_package
 ```
 > To disconnect from ipython3, type `quit`; to deactivate the *virtualenv* type `deactivate`; to disconnect from the interactive session type `logout`.

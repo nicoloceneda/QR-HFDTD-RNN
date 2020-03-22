@@ -4,42 +4,29 @@
     times from the wrds database.
 
     Contact: nicolo.ceneda@student.unisg.ch
-    Last update: 25 June 2019
+    Last update: 22 March 2020
 
 """
 
 
+# TODO: remove from the current directory the following files, which have been copied from the directory 'official paper code'
+#    LST;-HTQF.bat; LSTM-HTQF.py; makeData.bat; makeData.py; rawData (folder); readMe.txt
+
+
 # ------------------------------------------------------------------------------------------------------------------------------------------
-# 0. PROGRAM SETUP
+# 0. CODE SETUP
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 
-# Import the libraries and the modules
+# Import the libraries
 
+import os
+import time
 import argparse
 import numpy as np
 import pandas as pd
 import pandas_market_calendars as mcal
 import matplotlib.pyplot as plt
-import time
-import os
-
-
-# Time execution
-
-start = time.time()
-
-
-# Import the functions from the functions file
-
-from extract_data_functions import section, graph_output, graph_comparison, print_output
-
-
-# Set the displayed size of pandas objects
-
-pd.set_option('display.max_rows', 10000)
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 10000)
 
 
 # Establish a connection to the wrds cloud
@@ -56,6 +43,24 @@ else:
 
     db = wrds.Connection()
 
+
+# Import the functions from the functions script
+
+from extract_data_functions import section, graph_output, graph_comparison, print_output
+
+
+# Set the displayed size of pandas objects
+
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', None)
+
+
+# Start timing the execution
+
+start = time.time()
+
+
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # 1. COMMAND LINE INTERFACE AND INPUT CHECK
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -64,7 +69,7 @@ else:
 # Define the commands available in the command line interface
 
 min_start_date = '2003-09-10'
-max_end_date = '2019-05-31'
+max_end_date = '2020-02-31'
 min_start_time = '09:30:00'
 max_end_time = '16:00:00'
 
@@ -108,15 +113,16 @@ else:
 # Check the validity of the input symbols and create the list of symbols:
 
 symbol_list = args.symbol_list
-unwanted_symbols = ['GOOG', 'LBTYA', 'FOX']
-wanted_symbols = ['GOOG', 'LBTY', 'FOXA']
 
+unwanted_symbols = ['GOOG', 'LBTYA', 'FOX']
+
+wanted_symbols = ['GOOG', 'LBTY', 'FOXA']
 suffix_dict = {'GOOG': 'L', 'LBTY': 'K', 'FOXA': ''}
 
-suffix_query = {symbol: '' for symbol in symbol_list if symbol not in unwanted_symbols}
-suffix_query['GOOG'] = "and sym_suffix = 'L'"
-suffix_query['LBTY'] = "and sym_suffix = 'K'"
-suffix_query['FOXA'] = ""
+suffix_query = {symbol: "is null" for symbol in symbol_list if symbol not in unwanted_symbols}
+suffix_query['GOOG'] = "='L'"
+suffix_query['LBTY'] = "='K'"
+suffix_query['FOXA'] = "is null"
 
 for pos, unwanted_symbol in enumerate(unwanted_symbols):
 
@@ -190,10 +196,12 @@ def query_sql(date_, symbol_, start_time_, end_time_):
     max_attempts = 2
 
     parm = {'G': '%G%', 'L': '%L%', 'P': '%P%', 'T': '%T%', 'U': '%U%', 'X': '%X%', 'Z': '%Z%'}
+
     query = "SELECT date, time_m, sym_root, sym_suffix, tr_scond, size, price, tr_corr " \
             "FROM taqm_{}.ctm_{} " \
             "WHERE " \
-            "    sym_root = '{}' {} " \
+            "    sym_root = '{}' " \
+            "AND sym_suffix {} " \
             "AND time_m >= '{}' " \
             "AND time_m <= '{}' " \
             "AND tr_corr = '00'" \

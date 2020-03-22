@@ -30,9 +30,8 @@ import matplotlib.pyplot as plt
 
 def section(my_string):
 
-    print('\n-----------------------------------------------------------------------------------------------')
-    print('{}'.format(my_string))
-    print('-----------------------------------------------------------------------------------------------')
+    line_length = len(my_string)
+    print('\n', '-'*line_length, '\n', '{}'.format(my_string), '\n', '-'*line_length)
 
 
 # Create a function to print the output dataframes
@@ -41,7 +40,7 @@ def print_output(output_, print_output_flag_, head_flag_):
 
     if (print_output_flag_ is True) & (head_flag_ is True):
 
-        print(output_.head())
+        print(output_.head(10))
 
     elif (print_output_flag_ is True) & (head_flag_ is False):
 

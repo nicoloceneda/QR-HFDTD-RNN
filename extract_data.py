@@ -10,7 +10,7 @@
 
 
 # TODO: remove from the current directory the following files, which have been copied from the directory 'official paper code'
-#    LST;-HTQF.bat; LSTM-HTQF.py; makeData.bat; makeData.py; rawData (folder); readMe.txt
+#    LST;-HTQF.bat; LSTM-HTQF.py; makeData.bat; makeData.py; rawData (folder); readMe.txt. Remove also: building.py
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------

@@ -11,7 +11,7 @@
 <pre>
 │
 ├── Programming and Computing Setup.md    <--  Programming and computing setup required to execute
-│                                               the programs. 
+│                                              the programs. 
 │
 ├── extract_data.py                       <--  Command line interface to extract and clean trade 
 │        │                                     data downloaded from the wrds database.

@@ -73,7 +73,8 @@ max_end_date = '2020-02-31'
 min_start_time = '09:30:00'
 max_end_time = '16:00:00'
 
-parser = argparse.ArgumentParser(description='Command-line interface to extract trade data')
+parser = argparse.ArgumentParser(description='Command-line interface to extract trade data',
+                                 formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=40))
 
 parser.add_argument('-sl', '--symbol_list', metavar='', type=str, default=['AAPL'], nargs='+', help='List of symbols to extract.')
 parser.add_argument('-sd', '--start_date', metavar='', type=str, default='{}'.format(min_start_date), help='Start date to extract the data.')
@@ -101,37 +102,35 @@ if args.debug:
     args.graph_output = True
     args.save_output = False
 
-    section('You are debugging with: symbol_list: {}; start_date: {}; end_date: {}; start_time: {}; end_time: {}'.format(args.symbol_list,
+    section('You are debugging with: symbol_list: {} | start_date: {} | end_date: {} | start_time: {} | end_time: {}'.format(args.symbol_list,
             args.start_date, args.end_date, args.start_time, args.end_time))
 
 else:
 
-    section('You are querying with: symbol_list: {}; start_date: {}; end_date: {}; start_time: {}; end_time: {}'.format(args.symbol_list,
+    section('You are querying with: symbol_list: {} | start_date: {} | end_date: {} | start_time: {} | end_time: {}'.format(args.symbol_list,
             args.start_date, args.end_date, args.start_time, args.end_time))
 
 
 # Check the validity of the input symbols and create the list of symbols:
 
-symbol_list = args.symbol_list
+symbol_list = ['AAPL', 'AMZN', 'GOOG', 'TSLA', 'FOX']  # TODO : symbol_list = args.symbol_list
 
 unwanted_symbols = ['GOOG', 'LBTYA', 'FOX']
-
 wanted_symbols = ['GOOG', 'LBTY', 'FOXA']
-suffix_dict = {'GOOG': 'L', 'LBTY': 'K', 'FOXA': ''}
-
-suffix_query = {symbol: "is null" for symbol in symbol_list if symbol not in unwanted_symbols}
-suffix_query['GOOG'] = "='L'"
-suffix_query['LBTY'] = "='K'"
-suffix_query['FOXA'] = "is null"
+wanted_symbols_suffix = {'GOOG': 'L', 'LBTY': 'K', 'FOXA': ''}
 
 for pos, unwanted_symbol in enumerate(unwanted_symbols):
 
     if unwanted_symbol in symbol_list:
+
         wanted_symbol = wanted_symbols[pos]
-        wanted_suffix = suffix_dict[wanted_symbol]
+        wanted_suffix = wanted_symbols_suffix[wanted_symbol]
         symbol_list[symbol_list.index(unwanted_symbol)] = wanted_symbol
         print('\n*** WARNING: You attempted to query {}: {} has been selected instead as it is more liquid.'.format(unwanted_symbol,
-               wanted_symbol + wanted_suffix))
+              wanted_symbol + wanted_suffix))
+
+suffix_query = {symbol: "is null" for symbol in symbol_list if symbol not in unwanted_symbols}  # TODO: check
+suffix_query.update({'GOOG': "='L'", 'LBTY': "='K'", 'FOXA': "is null"})
 
 
 # Check the validity of the input dates and create the list of dates:
@@ -193,6 +192,7 @@ elif args.start_time < min_start_time and args.end_time > max_end_time:
 # Create a function to run the SQL query and filter for unwanted 'tr_corr' and 'tr_scond'
 
 def query_sql(date_, symbol_, start_time_, end_time_):
+
     max_attempts = 2
 
     parm = {'G': '%G%', 'L': '%L%', 'P': '%P%', 'T': '%T%', 'U': '%U%', 'X': '%X%', 'Z': '%Z%'}

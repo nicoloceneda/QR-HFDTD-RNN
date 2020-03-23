@@ -8,7 +8,6 @@
 
 """
 
-
 # TODO: remove from the current directory the following files, which have been copied from the directory 'official paper code'
 #    LST;-HTQF.bat; LSTM-HTQF.py; makeData.bat; makeData.py; rawData (folder); readMe.txt. Remove also: building.py
 
@@ -28,7 +27,6 @@ import pandas as pd
 import pandas_market_calendars as mcal
 import matplotlib.pyplot as plt
 
-
 # Establish a connection to the wrds cloud
 
 try:
@@ -43,11 +41,9 @@ else:
 
     db = wrds.Connection()
 
-
 # Import the functions from the functions script
 
 from extract_data_functions import section, graph_output, graph_comparison, print_output
-
 
 # Set the displayed size of pandas objects
 
@@ -55,11 +51,9 @@ pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
 
-
 # Start timing the execution
 
 start = time.time()
-
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # 1. COMMAND LINE INTERFACE AND INPUT CHECK
@@ -88,7 +82,6 @@ parser.add_argument('-so', '--save_output', action='store_true', help='Flag to s
 
 args = parser.parse_args()
 
-
 # Define the debug settings
 
 if args.debug:
@@ -110,27 +103,26 @@ else:
     section('You are querying with: symbol_list: {} | start_date: {} | end_date: {} | start_time: {} | end_time: {}'.format(args.symbol_list,
             args.start_date, args.end_date, args.start_time, args.end_time))
 
-
 # Check the validity of the input symbols and create the list of symbols:
 
 symbol_list = ['AAPL', 'AMZN', 'GOOG', 'TSLA', 'FOX']  # TODO : symbol_list = args.symbol_list
 
 unwanted_symbols = ['GOOG', 'LBTYA', 'FOX']
 wanted_symbols = ['GOOG', 'LBTY', 'FOXA']
-wanted_symbols_suffix = {'GOOG': 'L', 'LBTY': 'K', 'FOXA': ''}
+wanted_symbols_suffix = {'GOOG': ('L', "='L'"), 'LBTY': ('K', "='K'"), 'FOXA': ('', "is null")}
+
+suffix_query = {symbol: "is null" for symbol in symbol_list if symbol not in unwanted_symbols}
 
 for pos, unwanted_symbol in enumerate(unwanted_symbols):
 
     if unwanted_symbol in symbol_list:
 
         wanted_symbol = wanted_symbols[pos]
-        wanted_suffix = wanted_symbols_suffix[wanted_symbol]
+        wanted_suffix = wanted_symbols_suffix[wanted_symbol][0]
         symbol_list[symbol_list.index(unwanted_symbol)] = wanted_symbol
+        suffix_query[wanted_symbol] = wanted_symbols_suffix[wanted_symbol][1]
         print('\n*** WARNING: You attempted to query {}: {} has been selected instead as it is more liquid.'.format(unwanted_symbol,
               wanted_symbol + wanted_suffix))
-
-suffix_query = {symbol: "is null" for symbol in symbol_list if symbol not in unwanted_symbols}  # TODO: check
-suffix_query.update({'GOOG': "='L'", 'LBTY': "='K'", 'FOXA': "is null"})
 
 
 # Check the validity of the input dates and create the list of dates:
@@ -159,7 +151,6 @@ nasdaq = mcal.get_calendar('NASDAQ')
 nasdaq_cal = nasdaq.schedule(start_date=args.start_date, end_date=args.end_date)
 date_index = nasdaq_cal.index
 date_list = [str(d)[:10].replace('-', '') for d in date_index]
-
 
 # Check the validity of the input times:
 
@@ -192,15 +183,13 @@ elif args.start_time < min_start_time and args.end_time > max_end_time:
 # Create a function to run the SQL query and filter for unwanted 'tr_corr' and 'tr_scond'
 
 def query_sql(date_, symbol_, start_time_, end_time_):
-
     max_attempts = 2
 
-    parm = {'G': '%G%', 'L': '%L%', 'P': '%P%', 'T': '%T%', 'U': '%U%', 'X': '%X%', 'Z': '%Z%'}
+    parm = {'G': '%G%', 'L': '%L%', 'P': '%P%', 'T': '%T%', 'U': '%U%', 'X': '%X%', 'Z': '%Z%'}  # TODO: add below tr_seqnum
 
     query = "SELECT date, time_m, sym_root, sym_suffix, tr_scond, size, price, tr_corr " \
             "FROM taqm_{}.ctm_{} " \
-            "WHERE " \
-            "    sym_root = '{}' " \
+            "WHERE sym_root = '{}' " \
             "AND sym_suffix {} " \
             "AND time_m >= '{}' " \
             "AND time_m <= '{}' " \
@@ -291,7 +280,7 @@ for count_1, symbol in enumerate(symbol_list):
     for date in date_list:
 
         print('Running a query with: symbol: {}, date: {}, start_time: {}; end_time: {}.'.format(symbol, pd.to_datetime(date)
-              .strftime('%Y-%m-%d'), args.start_time, args.end_time))
+                                                                                                 .strftime('%Y-%m-%d'), args.start_time, args.end_time))
 
         all_tables = db.list_tables(library='taqm_{}'.format(date[:4]))
 
@@ -329,19 +318,16 @@ for count_1, symbol in enumerate(symbol_list):
     date_list = [d for d in date_list if d not in remove_dates_2]
 
     if len(date_list) == 0:
-
         print('\n*** ERROR: Could not find any table in the table list.')
         exit()
 
 date_list = [d for d in date_list if d not in list(set(remove_dates_1))]
 
 if len(date_list) == 0:
-
     print('\n*** ERROR: No symbol traded on the chosen dates.')
     exit()
 
 print('\nThe updated parameters are: symbol_list: {}; date_list: {}'.format(args.symbol_list, date_list))
-
 
 # Display the log of the warnings
 
@@ -356,20 +342,17 @@ print(warning_ctm_date)
 print('*** LOG: warning_query_sql:')
 print(warning_query_sql)
 
-
 # Display the dataframe with the min and max number of observations for each symbol
 
 section('Min and max number of observations for each queried symbol')
 
 print(n_obs_table)
 
-
 # Display the dataframe of the queried trades
 
 section('Queried data')
 
 print_output(output_=output, print_output_flag_=args.print_output, head_flag_=True)
-
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # 3. DATA CLEANING
@@ -401,11 +384,11 @@ outlier_frame['symbol'] = pd.Series(symbol_list)
 
 not_outlier_series = pd.Series([])
 
-for pos, symbol in enumerate(symbol_list): # pos = 0, symbol = 'TSLA'
+for pos, symbol in enumerate(symbol_list):  # pos = 0, symbol = 'TSLA'
 
     count = 0
 
-    for k, y in ky_array: # k = 41.0 y = 0.02
+    for k, y in ky_array:  # k = 41.0 y = 0.02
 
         count += 1
         outlier_num_sym = 0
@@ -414,34 +397,34 @@ for pos, symbol in enumerate(symbol_list): # pos = 0, symbol = 'TSLA'
         perc_b = int(k * delta)  # 4
         perc_t = int(k * (1 - delta) + 1)  # 37
 
-        for date in date_list: # date = '20190325'
+        for date in date_list:  # date = '20190325'
 
             price_sym_day = output.loc[(output['sym_root'] == symbol) & (pd.to_datetime(output['date']) == pd.to_datetime(date)), 'price']
 
-            center_beg = int((k - 1) / 2) # 20
-            center_end = int(len(price_sym_day)) - center_beg # 6691
+            center_beg = int((k - 1) / 2)  # 20
+            center_end = int(len(price_sym_day)) - center_beg  # 6691
 
-            window = np.sort(price_sym_day[:int(k)]) # :40
+            window = np.sort(price_sym_day[:int(k)])  # :40
             mean_rolling = np.repeat(np.nan, len(price_sym_day))
             std_rolling = np.repeat(np.nan, len(price_sym_day))
 
-            for i in range(center_beg, center_end): # [0:19] 20 -> 6690 [6691:6710]
+            for i in range(center_beg, center_end):  # [0:19] 20 -> 6690 [6691:6710]
 
-                mean_rolling[i] = window[perc_b:perc_t].mean() # [0,1,2,3] 4->36 [37,38,39,40] |
+                mean_rolling[i] = window[perc_b:perc_t].mean()  # [0,1,2,3] 4->36 [37,38,39,40] |
                 std_rolling[i] = window[perc_b:perc_t].std()
 
-                if i < center_end - 1: # 6690
-                    idx_drop = np.searchsorted(window, price_sym_day[i - center_beg]) # 0 | 158
-                    window[idx_drop] = price_sym_day[i + center_beg + 1] # 41 | 199
+                if i < center_end - 1:  # 6690
+                    idx_drop = np.searchsorted(window, price_sym_day[i - center_beg])  # 0 | 158
+                    window[idx_drop] = price_sym_day[i + center_beg + 1]  # 41 | 199
                     window.sort()
 
             price_sym_day_mean = pd.Series(mean_rolling, index=price_sym_day.index)
             price_sym_day_std = pd.Series(std_rolling, index=price_sym_day.index)
 
             price_sym_day_mean.iloc[:center_beg] = price_sym_day_mean.iloc[center_beg]
-            price_sym_day_mean.iloc[center_end:] = price_sym_day_mean.iloc[center_end-1]
+            price_sym_day_mean.iloc[center_end:] = price_sym_day_mean.iloc[center_end - 1]
             price_sym_day_std.iloc[:center_beg] = price_sym_day_std.iloc[center_beg]
-            price_sym_day_std.iloc[center_end:] = price_sym_day_std.iloc[center_end-1]
+            price_sym_day_std.iloc[center_end:] = price_sym_day_std.iloc[center_end - 1]
 
             left_con = (price_sym_day - price_sym_day_mean).abs()
             right_con = (3 * price_sym_day_std) + y
@@ -467,20 +450,17 @@ for pos, symbol in enumerate(symbol_list): # pos = 0, symbol = 'TSLA'
 
 output_filtered = output[not_outlier_series]
 
-
 # Display the table of optimal k, y
 
 section('k, y to optimally filter each queried symbol')
 
 print(outlier_frame)
 
-
 # Display the cleaned dataframe of the queried trades
 
 section('Cleaned data')
 
 print_output(output_=output_filtered, print_output_flag_=args.print_output, head_flag_=True)
-
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # 4. DATA MANAGEMENT
@@ -493,13 +473,11 @@ price_median = output_filtered.groupby(['sym_root', 'date', 'time_m']).median().
 volume_sum = output_filtered.groupby(['sym_root', 'date', 'time_m']).sum().reset_index().loc[:, 'size']
 output_aggregate = pd.concat([price_median, volume_sum], axis=1)
 
-
 # Display the aggregated dataframe of the queried trades
 
 section('Aggregated and resampled data')
 
 print_output(output_=output_aggregate, print_output_flag_=args.print_output, head_flag_=True)
-
 
 # Create a function to resample observations at lower frequency
 
@@ -553,13 +531,11 @@ for count, freq in enumerate(freq_list):
             nan_frame.loc[pos, 'ratio'] = ratio
             output_resampled_f = output_resampled
 
-
 # Display the table of optimal resampling frequencies
 
 section('Resampling frequencies')
 
 print(nan_frame)
-
 
 # Display the resampled dataframe of the queried trades
 
@@ -567,18 +543,15 @@ section('Resampled data')
 
 print_output(output_=output_resampled_f, print_output_flag_=args.print_output, head_flag_=False)
 
-
 # Display the final plots of the queried trades
 
 if args.graph_output:
     graph_output(output_=output_resampled_f, symbol_list_=symbol_list, date_index_=date_index, usage_='Final')
 
-
 # Display the comparative plot between the original and the final plots
 
 if args.graph_output:
     graph_comparison(output, output_resampled_f, symbol_list[0], date_list[0], 'Original', 'Final')
-
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # 5. TRAINING, VALIDATION, TEST SETS
@@ -604,12 +577,12 @@ for i, symbol in enumerate(symbol_list):
     X = []
     Y = []
 
-    for pos in range(elle, data.shape[0]): # 100 -> 199
+    for pos in range(elle, data.shape[0]):  # 100 -> 199
 
-        y = data.iloc[pos]['return'] # 100 | 101
+        y = data.iloc[pos]['return']  # 100 | 101
         Y.append(y)
 
-        data_past = pd.DataFrame(data.iloc[pos - elle: pos], copy=True) # 0:99 | 1:100 -> 99:198
+        data_past = pd.DataFrame(data.iloc[pos - elle: pos], copy=True)  # 0:99 | 1:100 -> 99:198
         r_past = data_past['return']
         r_past_ma = data_past.iloc[-1]['return_ma']
         r_diff = r_past - r_past_ma
@@ -638,7 +611,6 @@ for i, symbol in enumerate(symbol_list):
     # Standardize the training, validation and test datasets
 
     for column in X_train.columns:
-
         column_mean = X_train[column].mean()
         column_std = X_train[column].std()
 
@@ -656,13 +628,11 @@ for i, symbol in enumerate(symbol_list):
     # Save the training, validation and test datasets
 
     if not os.path.isdir(symbol):
-
         os.mkdir(symbol)
 
     symbol_l = '{}/{}/'.format(symbol, elle)
 
     if not os.path.isdir(symbol_l):
-
         os.mkdir(symbol_l)
 
     X_train.to_csv(symbol_l + 'X_train.csv', index=False)
@@ -673,7 +643,6 @@ for i, symbol in enumerate(symbol_list):
     Y_valid.to_csv(symbol_l + 'Y_valid.csv', index=False)
     Y_test.to_csv(symbol_l + 'Y_test.csv', index=False)
 
-
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # PROGRAM SETUP
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -683,17 +652,14 @@ for i, symbol in enumerate(symbol_list):
 
 db.close()
 
-
 # Show the plots
 
 plt.show()
-
 
 # State the end of the execution
 
 print()
 print('End of Execution')
-
 
 # Time execution
 
@@ -701,11 +667,9 @@ end = time.time()
 
 print(end - start)
 
-
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # TO DO LIST
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 
 # TODO: Addition of dividend and/or split adjustments
-

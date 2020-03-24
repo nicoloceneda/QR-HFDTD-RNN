@@ -27,6 +27,7 @@ import pandas as pd
 import pandas_market_calendars as mcal
 import matplotlib.pyplot as plt
 
+
 # Establish a connection to the wrds cloud
 
 try:
@@ -41,9 +42,11 @@ else:
 
     db = wrds.Connection()
 
+
 # Import the functions from the functions script
 
 from extract_data_functions import section, graph_output, graph_comparison, print_output
+
 
 # Set the displayed size of pandas objects
 
@@ -51,9 +54,11 @@ pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
 
+
 # Start timing the execution
 
 start = time.time()
+
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # 1. COMMAND LINE INTERFACE AND INPUT CHECK
@@ -82,9 +87,10 @@ parser.add_argument('-so', '--save_output', action='store_true', help='Flag to s
 
 args = parser.parse_args()
 
+
 # Define the debug settings
 
-if args.debug:
+if True:  # TODO: if args.debug:
 
     args.symbol_list = ['AAPL', 'AMZN', 'GOOG', 'TSLA']
     args.start_date = '2019-03-28'
@@ -103,9 +109,10 @@ else:
     section('You are querying with: symbol_list: {} | start_date: {} | end_date: {} | start_time: {} | end_time: {}'.format(args.symbol_list,
             args.start_date, args.end_date, args.start_time, args.end_time))
 
+
 # Check the validity of the input symbols and create the list of symbols:
 
-symbol_list = ['AAPL', 'AMZN', 'GOOG', 'TSLA', 'FOX']  # TODO : symbol_list = args.symbol_list
+symbol_list = args.symbol_list
 
 unwanted_symbols = ['GOOG', 'LBTYA', 'FOX']
 wanted_symbols = ['GOOG', 'LBTY', 'FOXA']
@@ -152,6 +159,7 @@ nasdaq_cal = nasdaq.schedule(start_date=args.start_date, end_date=args.end_date)
 date_index = nasdaq_cal.index
 date_list = [str(d)[:10].replace('-', '') for d in date_index]
 
+
 # Check the validity of the input times:
 
 if args.start_time > args.end_time:
@@ -183,6 +191,7 @@ elif args.start_time < min_start_time and args.end_time > max_end_time:
 # Create a function to run the SQL query and filter for unwanted 'tr_corr' and 'tr_scond'
 
 def query_sql(date_, symbol_, start_time_, end_time_):
+
     max_attempts = 2
 
     parm = {'G': '%G%', 'L': '%L%', 'P': '%P%', 'T': '%T%', 'U': '%U%', 'X': '%X%', 'Z': '%Z%'}  # TODO: add below tr_seqnum
@@ -227,7 +236,8 @@ def query_sql(date_, symbol_, start_time_, end_time_):
 
 # Create a function to check the min and max number of observations for each symbol
 
-def n_obs(queried_trades_, date_):
+def n_obs(queried_trades_, date_):  # TODO: understand
+
     global count_2, min_n_obs, min_n_obs_day, max_n_obs, max_n_obs_day
     count_2 += 1
     obs = queried_trades_.shape[0]
@@ -279,8 +289,8 @@ for count_1, symbol in enumerate(symbol_list):
 
     for date in date_list:
 
-        print('Running a query with: symbol: {}, date: {}, start_time: {}; end_time: {}.'.format(symbol, pd.to_datetime(date)
-                                                                                                 .strftime('%Y-%m-%d'), args.start_time, args.end_time))
+        print('Running a query with: symbol: {}, date: {}, start_time: {}; end_time: {}.'.format(symbol, pd.to_datetime(date).strftime('%Y-%m-%d'),
+              args.start_time, args.end_time))
 
         all_tables = db.list_tables(library='taqm_{}'.format(date[:4]))
 
@@ -296,7 +306,7 @@ for count_1, symbol in enumerate(symbol_list):
                     output = output.append(queried_trades)
                     n_obs(queried_trades, date)
 
-                else:
+                else:  # TODO:
 
                     print('*** WARNING: Symbol {} did not trade on date {}: the date has been removed from date_list; '
                           'the warning has been recorded to "warning_queried_trades".'.format(symbol, pd.to_datetime(date).strftime('%Y-%m-%d')))
@@ -305,7 +315,7 @@ for count_1, symbol in enumerate(symbol_list):
 
             else:
 
-                print('*** WARNING: The warning has been recorded to warning_query_sql".')
+                print('*** WARNING: The warning has been recorded to "warning_query_sql".')
                 warning_query_sql.append('{}+{}'.format(symbol, date))
 
         else:
@@ -318,16 +328,19 @@ for count_1, symbol in enumerate(symbol_list):
     date_list = [d for d in date_list if d not in remove_dates_2]
 
     if len(date_list) == 0:
+
         print('\n*** ERROR: Could not find any table in the table list.')
         exit()
 
-date_list = [d for d in date_list if d not in list(set(remove_dates_1))]
+date_list = [d for d in date_list if d not in list(set(remove_dates_1))] # TODO: bring inside the loop
 
 if len(date_list) == 0:
+
     print('\n*** ERROR: No symbol traded on the chosen dates.')
     exit()
 
 print('\nThe updated parameters are: symbol_list: {}; date_list: {}'.format(args.symbol_list, date_list))
+
 
 # Display the log of the warnings
 

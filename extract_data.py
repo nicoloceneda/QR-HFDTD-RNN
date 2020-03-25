@@ -90,7 +90,7 @@ args = parser.parse_args()
 
 # Define the debug settings
 
-if True:  # TODO: if args.debug:
+if args.debug:
 
     args.symbol_list = ['AAPL', 'AMZN', 'GOOG', 'TSLA']
     args.start_date = '2019-03-28'
@@ -236,7 +236,7 @@ def query_sql(date_, symbol_, start_time_, end_time_):
 
 # Create a function to check the min and max number of observations for each symbol
 
-def n_obs(queried_trades_, date_):  # TODO: understand
+def n_obs(queried_trades_, date_):
 
     global count_2, min_n_obs, min_n_obs_day, max_n_obs, max_n_obs_day
     count_2 += 1
@@ -275,8 +275,7 @@ n_obs_table = pd.DataFrame({'symbol': [], 'min_n_obs': [], 'min_n_obs_day': [], 
 
 output = pd.DataFrame([])
 
-remove_dates_1 = []
-remove_dates_2 = []
+remove_dates = []
 
 for count_1, symbol in enumerate(symbol_list):
 
@@ -306,11 +305,12 @@ for count_1, symbol in enumerate(symbol_list):
                     output = output.append(queried_trades)
                     n_obs(queried_trades, date)
 
-                else:  # TODO:
+                else:
 
-                    print('*** WARNING: Symbol {} did not trade on date {}: the date has been removed from date_list; '
-                          'the warning has been recorded to "warning_queried_trades".'.format(symbol, pd.to_datetime(date).strftime('%Y-%m-%d')))
-                    remove_dates_1.append(date)
+                    print('*** WARNING: Symbol {} did not trade on date {}: the date has been removed from date_list and all trades already '
+                          'queried with this date have be cancelled; the warning has been recorded to "warning_queried_trades".'.format(symbol,
+                           pd.to_datetime(date).strftime('%Y-%m-%d')))
+                    remove_dates.append(date)
                     warning_queried_trades.append('{}+{}'.format(symbol, date))
 
             else:
@@ -322,22 +322,17 @@ for count_1, symbol in enumerate(symbol_list):
 
             print('*** WARNING: Could not find the table ctm_{} in the table list: the date has been removed from date_list; '
                   'the warning has been recorded to "warning_ctm_date".'.format(date))
-            remove_dates_2.append(date)
+            remove_dates.append(date)
             warning_ctm_date.append(date)
 
-    date_list = [d for d in date_list if d not in remove_dates_2]
+    date_list = [d for d in date_list if d not in list(set(remove_dates))]
 
     if len(date_list) == 0:
 
-        print('\n*** ERROR: Could not find any table in the table list.')
+        print('\n*** ERROR: Could not find any table in the table list or at least one symbol did not trade for each date.')
         exit()
 
-date_list = [d for d in date_list if d not in list(set(remove_dates_1))] # TODO: bring inside the loop
-
-if len(date_list) == 0:
-
-    print('\n*** ERROR: No symbol traded on the chosen dates.')
-    exit()
+output = output[pd.to_datetime(output['date']).isin([pd.to_datetime(d) for d in date_list])]
 
 print('\nThe updated parameters are: symbol_list: {}; date_list: {}'.format(args.symbol_list, date_list))
 
@@ -346,14 +341,12 @@ print('\nThe updated parameters are: symbol_list: {}; date_list: {}'.format(args
 
 section('Log of the raised warnings')
 
-print('*** LOG: warning_queried_trades:')
-print(warning_queried_trades)
+print('*** LOG: warning_queried_trades:\n', warning_queried_trades)
 
-print('*** LOG: warning_ctm_date:')
-print(warning_ctm_date)
+print('*** LOG: warning_ctm_date:\n', warning_ctm_date)
 
-print('*** LOG: warning_query_sql:')
-print(warning_query_sql)
+print('*** LOG: warning_query_sql:\n', warning_query_sql)
+
 
 # Display the dataframe with the min and max number of observations for each symbol
 
@@ -361,11 +354,13 @@ section('Min and max number of observations for each queried symbol')
 
 print(n_obs_table)
 
+
 # Display the dataframe of the queried trades
 
 section('Queried data')
 
 print_output(output_=output, print_output_flag_=args.print_output, head_flag_=True)
+
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # 3. DATA CLEANING
@@ -379,9 +374,8 @@ print_output(output_=output, print_output_flag_=args.print_output, head_flag_=Tr
     - Observations with 'tr_corr' == '00' were kept
 
     - Observations with 'tr_scond' in {'@', 'A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'K', 'M', 
-    'N', 'O', 'Q', 'R', 'S', 'V', 'W', 'Y', '1', '4', '5', '6', '7', '8', '9'} were kept.
+      'N', 'O', 'Q', 'R', 'S', 'V', 'W', 'Y', '1', '4', '5', '6', '7', '8', '9'} were kept.
     - Observations with 'tr_scond' in {'G', 'L', 'P', 'T', 'U', 'X', 'Z'} were discarded.
-
 """
 
 # Clean the data from outliers
@@ -474,6 +468,7 @@ print(outlier_frame)
 section('Cleaned data')
 
 print_output(output_=output_filtered, print_output_flag_=args.print_output, head_flag_=True)
+
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # 4. DATA MANAGEMENT

@@ -381,8 +381,9 @@ print_output(output_=output, print_output_flag_=args.print_output, head_flag_=Tr
 # Clean the data from outliers
 
 delta = 0.1
-k_list = np.arange(41, 121, 20, dtype='int64')
-y_list = np.arange(0.02, 0.08, 0.02)
+
+k_list = np.arange(41, 141, 20, dtype='int64')
+y_list = np.arange(0.02, 0.10, 0.02)
 k_grid, y_grid = np.meshgrid(k_list, y_list)
 ky_array = np.array([k_grid.ravel(), y_grid.ravel()]).T
 

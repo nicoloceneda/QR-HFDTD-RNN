@@ -496,7 +496,7 @@ print_output(output_=output_aggregate, print_output_flag_=args.print_output, hea
 
 # Create a function to resample observations at lower frequency
 
-freq_list = ['200L', '300L', '400L', '500L'] # TODO. add ore options
+freq_list = ['500L', '1S', '2S'] # TODO. add ore options
 nan_frame = pd.DataFrame(columns=['symbol', 'freq', 'ratio'])
 nan_frame['symbol'] = pd.Series(symbol_list)
 
@@ -530,6 +530,9 @@ for count, freq in enumerate(freq_list):
             # The position of this line is crucial
             df_resampled['price'] = df_resampled['price'].interpolate(method='linear')
             df_resampled['price'] = df_resampled['price'].fillna(method='bfill')
+            df_resampled['sym_root'] = symbol
+            df_resampled['date'] = df_resampled.index.date
+            df_resampled['time_m'] = df_resampled.index.time
 
             output_resampled = output_resampled.append(df_resampled)
 
@@ -547,11 +550,13 @@ for count, freq in enumerate(freq_list):
             nan_frame.loc[pos, 'ratio'] = ratio
             output_resampled_f = output_resampled
 
+
 # Display the table of optimal resampling frequencies
 
 section('Resampling frequencies')
 
 print(nan_frame)
+
 
 # Display the resampled dataframe of the queried trades
 
@@ -559,15 +564,20 @@ section('Resampled data')
 
 print_output(output_=output_resampled_f, print_output_flag_=args.print_output, head_flag_=False)
 
+
 # Display the final plots of the queried trades
 
 if args.graph_output:
+
     graph_output(output_=output_resampled_f, symbol_list_=symbol_list, date_index_=date_index, usage_='Final')
+
 
 # Display the comparative plot between the original and the final plots
 
 if args.graph_output:
+
     graph_comparison(output, output_resampled_f, symbol_list[0], date_list[0], 'Original', 'Final')
+
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # 5. TRAINING, VALIDATION, TEST SETS

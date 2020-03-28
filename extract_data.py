@@ -586,26 +586,24 @@ if args.graph_output:
 
 # Create a dataframe containing the series of prices, returns, moving average returns
 
-len_symbol_index = len(output_resampled_f.index.unique())
 elle = 100
 
-for i, symbol in enumerate(symbol_list):
+for symbol in symbol_list:
 
     # Create the features and target dataframes for the whole set
 
-    data = pd.DataFrame(output_resampled_f.iloc[i * len_symbol_index:(i + 1) * len_symbol_index]['price'])
-    temporary_var = np.diff(np.log(data['price']))
+    data = pd.DataFrame(output_resampled_f[output_resampled_f['sym_root'] == symbol]['price'])
+    log_return = np.diff(np.log(data['price']))
     data = data.iloc[1:]
-    data['return'] = temporary_var
-    del temporary_var
-    data['return_ma'] = data['return'].rolling(elle).mean()  # TODO: This formula is not correct
+    data['return'] = log_return
+    data['return_ma'] = data['return'].rolling(window=elle).mean()
 
     X = []
     Y = []
 
-    for pos in range(elle, data.shape[0]):  # 100 -> 199
+    for pos in range(elle, data.shape[0]):
 
-        y = data.iloc[pos]['return']  # 100 | 101
+        y = data.iloc[pos]['return']
         Y.append(y)
 
         data_past = pd.DataFrame(data.iloc[pos - elle: pos], copy=True)  # 0:99 | 1:100 -> 99:198

@@ -13,9 +13,9 @@
 ├── Programming and Computing Setup.md    <--  Programming and computing setup required to execute the p-
 │                                              ograms. 
 │
-├── extract_data.py                       <--  This script constructs the command line interface 
-                                               which is used to extract, clean and manage trade data for selected symbols, dates and
-    times from the wrds database.
+├── extract_data.py                       <--  This script constructs the command line interface which is
+│        │                                     used to extract, clean and manage trade data for selected 
+│        │                                     symbols, dates and times from the wrds database.
 │        │
 │        └── extract_data_functions.py    <--  General functions called in 'extract_data.py'
 │

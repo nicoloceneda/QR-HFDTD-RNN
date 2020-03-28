@@ -10,7 +10,7 @@
 ## Project Structure
 <pre>
 │
-├── Programming and Computing Setup.md    <--  Programming and computing setup required to execute the
+├── Programming and Computing Setup.md    <--  Programming and computing setup required to execute the pro-
 │                                              programs. 
 │
 ├── extract_data.py                       <--  This script constructs the command line interface 

@@ -17,22 +17,18 @@
 │        │                                     used to extract, clean and manage trade data for selected 
 │        │                                     symbols, dates and times from the wrds database.
 │        │
-│        └── extract_data_functions.py    <--  General functions called in 'extract_data.py'
+│        └── extract_data_functions.py    <--  This script contains general functions called in 'extract-
+│                                              _data.py'. Functions specific to the 'extract_data.py' are 
+│                                              not contained in this script.
 │
+├── extract_data_bg.sh                    <--  Wrapper script to execute 'extract_data.py' in 'debugging' 
+│                                              mode.
 │
-├── data_analysis.py                      <--  Analysis of general data.
+├── extract_data_sl.sh                    <--  Wrapper script to execute extract_data.py in 'symbol_list' 
+│                                              mode.
 │
-│
-├── extract_data_bg.sh                    <--  Wrapper script to execute 'extract_data.py' in 
-│                                              'debugging' mode.
-│
-├── extract_data_sl.sh                    <--  Wrapper script to execute extract_data.py in 
-│                                              'symbol_list' mode.
-│
-├── htqf_rnn.py                           <--  Heavy tail quantile function via a recurrent neural
-│                                              network
-│
-└── nasdaq100.xlsx                        <--  List of securities extracted
+└── appendix.py                           <--  This script generates some of the illustrations used in the 
+                                               theory review section of the paper.
 </pre>
 
 ![z_Original_Final](https://user-images.githubusercontent.com/47401951/59556228-4de6af00-8fbf-11e9-85b6-92ccfe1f3beb.png)

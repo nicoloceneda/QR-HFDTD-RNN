@@ -79,7 +79,6 @@ parser.add_argument('-et', '--end_time', metavar='', type=str, default='{}'.form
 parser.add_argument('-bg', '--debug', action='store_true', help='Flag to debug the program.')
 parser.add_argument('-po', '--print_output', action='store_true', help='Flag to print the output.')
 parser.add_argument('-go', '--graph_output', action='store_true', help='Flag to graph the output.')
-parser.add_argument('-so', '--save_output', action='store_true', help='Flag to store the output.')
 
 args = parser.parse_args()
 
@@ -95,7 +94,6 @@ if args.debug:
     args.end_time = '09:48:00'
     args.print_output = True
     args.graph_output = True
-    args.save_output = False
 
     section('You are debugging with: symbol_list: {} | start_date: {} | end_date: {} | start_time: {} | end_time: {}'.format(args.symbol_list,
             args.start_date, args.end_date, args.start_time, args.end_time))

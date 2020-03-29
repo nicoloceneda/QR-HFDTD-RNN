@@ -77,7 +77,7 @@ def graph_output(output_, symbol_list_, date_index_, usage_):
         ax[i].xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
 
     fig.tight_layout()
-    plt.savefig('z_{}.png'.format(usage_))
+    plt.savefig('images_extract_data/z_{}.png'.format(usage_))
 
 
 # Create a function to display comparative plots for the same symbol and date but different output status
@@ -111,7 +111,4 @@ def graph_comparison(output1_, output2_, symbol_, date_, usage1_, usage2_):
     ax[1].legend()
 
     fig.tight_layout()
-    plt.savefig('z_{}_{}.png'.format(usage1_, usage2_))
-
-
-
+    plt.savefig('images_extract_data/z_{}_{}.png'.format(usage1_, usage2_))

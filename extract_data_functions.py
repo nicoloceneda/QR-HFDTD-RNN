@@ -4,8 +4,7 @@
     script.
 
     Contact: nicolo.ceneda@student.unisg.ch
-    Last update: 17 May 2019
-
+    Last update: 29 March 2020
 """
 
 
@@ -14,12 +13,20 @@
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 
-# Import the libraries and the modules
+# Import the libraries
 
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+
+
+# Create the directory to store the images:
+
+if not os.path.isdir('images_extract_data'):
+
+    os.mkdir('images_extract_data')
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------

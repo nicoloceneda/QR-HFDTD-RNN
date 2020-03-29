@@ -1,6 +1,9 @@
 """ THEORY REVIEW
     -------------
     Generate some of the illustrations used in the theory review.
+
+    Contact: nicolo.ceneda@student.unisg.ch
+    Last update: 29 March 2020
 """
 
 
@@ -9,8 +12,18 @@
 # -------------------------------------------------------------------------------
 
 
+# Import the libraries
+
+import os
 import numpy as np
 import matplotlib.pyplot as plt
+
+
+# Create the directory to store the images:
+
+if not os.path.isdir('images_appendix'):
+
+    os.mkdir('images_appendix')
 
 
 # -------------------------------------------------------------------------------

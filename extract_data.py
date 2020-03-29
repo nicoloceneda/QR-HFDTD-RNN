@@ -5,11 +5,7 @@
 
     Contact: nicolo.ceneda@student.unisg.ch
     Last update: 29 March 2020
-
 """
-
-# TODO: remove from the current directory the following files, which have been copied from the directory 'official paper code'
-#    LST;-HTQF.bat; LSTM-HTQF.py; makeData.bat; makeData.py; rawData (folder); readMe.txt. Remove also: building.py
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -652,21 +648,28 @@ for symbol in symbol_list:
 
     # Save the training, validation and test datasets
 
-    if not os.path.isdir(symbol):
-        os.mkdir(symbol)
+    if not os.path.isdir('datasets'):
 
-    symbol_l = '{}/{}/'.format(symbol, elle)
+        os.mkdir('datasets')
 
-    if not os.path.isdir(symbol_l):
-        os.mkdir(symbol_l)
+    if not os.path.isdir('datasets/' + symbol):
 
-    X_train.to_csv(symbol_l + 'X_train.csv', index=False)
-    X_valid.to_csv(symbol_l + 'X_valid.csv', index=False)
-    X_test.to_csv(symbol_l + 'X_test.csv', index=False)
+        os.mkdir('datasets/' + symbol)
 
-    Y_train.to_csv(symbol_l + 'Y_train.csv', index=False)
-    Y_valid.to_csv(symbol_l + 'Y_valid.csv', index=False)
-    Y_test.to_csv(symbol_l + 'Y_test.csv', index=False)
+    symbol_l = '/{}_{}/'.format(symbol, elle)
+
+    if not os.path.isdir('datasets/' + symbol + symbol_l):
+
+        os.mkdir('datasets/' + symbol + symbol_l)
+
+    X_train.to_csv('datasets/' + symbol + symbol_l + 'X_train.csv', index=False)
+    X_valid.to_csv('datasets/' + symbol + symbol_l + 'X_valid.csv', index=False)
+    X_test.to_csv('datasets/' + symbol + symbol_l + 'X_test.csv', index=False)
+
+    Y_train.to_csv('datasets/' + symbol + symbol_l + 'Y_train.csv', index=False)
+    Y_valid.to_csv('datasets/' + symbol + symbol_l + 'Y_valid.csv', index=False)
+    Y_test.to_csv('datasets/' + symbol + symbol_l + 'Y_test.csv', index=False)
+
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # PROGRAM SETUP
@@ -677,20 +680,18 @@ for symbol in symbol_list:
 
 db.close()
 
+
 # Show the plots
 
 plt.show()
 
-# State the end of the execution
-
-print()
-print('End of Execution')
 
 # Time execution
 
 end = time.time()
 
-print(end - start)
+print('\nExecution time: ', end - start)
+
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
 # TO DO LIST
@@ -698,3 +699,6 @@ print(end - start)
 
 
 # TODO: Addition of dividend and/or split adjustments
+
+# TODO: remove from the current directory the following files, which have been copied from the directory 'official paper code'
+#       LST;-HTQF.bat; LSTM-HTQF.py; makeData.bat; makeData.py; rawData (folder); readMe.txt. Remove also: building.py

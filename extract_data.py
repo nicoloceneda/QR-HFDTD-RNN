@@ -86,7 +86,7 @@ args = parser.parse_args()
 
 # Define the debug settings
 
-if True: # TODO: if args.debug:
+if args.debug:
 
     args.symbol_list = ['AAPL', 'AMZN', 'GOOG', 'TSLA']
     args.start_date = '2019-03-28'
@@ -190,7 +190,7 @@ def query_sql(date_, symbol_, start_time_, end_time_):
 
     max_attempts = 2
 
-    parm = {'G': '%G%', 'L': '%L%', 'P': '%P%', 'T': '%T%', 'U': '%U%', 'X': '%X%', 'Z': '%Z%'}  # TODO: add below tr_seqnum
+    parm = {'G': '%G%', 'L': '%L%', 'P': '%P%', 'T': '%T%', 'U': '%U%', 'X': '%X%', 'Z': '%Z%'}
 
     query = "SELECT date, time_m, sym_root, sym_suffix, tr_scond, size, price, tr_corr " \
             "FROM taqm_{}.ctm_{} " \
@@ -492,7 +492,7 @@ print_output(output_=output_aggregate, print_output_flag_=args.print_output, hea
 
 # Create a function to resample observations at lower frequency
 
-freq_list = ['500L', '1S', '2S'] # TODO. add ore options
+freq_list = ['500L', '1S', '2S']
 nan_frame = pd.DataFrame(columns=['symbol', 'freq', 'ratio'])
 nan_frame['symbol'] = pd.Series(symbol_list)
 
@@ -639,7 +639,7 @@ for symbol in symbol_list:
         X_valid[column] = (X_valid[column] - column_mean) / column_std
         X_test[column] = (X_test[column] - column_mean) / column_std
 
-    Y_mean = Y_train.mean()  # TODO: does it make sense to standardize targets?
+    Y_mean = Y_train.mean()
     Y_std = Y_train.std()
 
     Y_train = (Y_train - Y_mean) / Y_std
@@ -701,4 +701,4 @@ print('\nExecution time: ', end - start)
 # TODO: Addition of dividend and/or split adjustments
 
 # TODO: remove from the current directory the following files, which have been copied from the directory 'official paper code'
-#       LST;-HTQF.bat; LSTM-HTQF.py; makeData.bat; makeData.py; rawData (folder); readMe.txt. Remove also: building.py
+#       LSTM-HTQF.bat; LSTM-HTQF.py; makeData.bat; makeData.py; rawData (folder); readMe.txt. Remove also: building.py

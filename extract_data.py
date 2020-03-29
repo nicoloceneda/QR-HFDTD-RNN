@@ -4,7 +4,7 @@
     times from the wrds database.
 
     Contact: nicolo.ceneda@student.unisg.ch
-    Last update: 22 March 2020
+    Last update: 29 March 2020
 
 """
 
@@ -621,20 +621,21 @@ for symbol in symbol_list:
     # Define the training, validation and test datasets
 
     n_train = int(Y.shape[0] * 0.8)
+    n_valid = n_train + int(Y.shape[0] * 0.1)
+
     X_train = pd.DataFrame(X.iloc[:n_train * elle], copy=True)
     Y_train = pd.DataFrame(Y.iloc[:n_train], copy=True)
 
-    n_valid = n_train + int(Y.shape[0] * 0.1)
     X_valid = pd.DataFrame(X.iloc[n_train * elle: n_valid * elle], copy=True)
     Y_valid = pd.DataFrame(Y.iloc[n_train: n_valid], copy=True)
 
-    n_test = n_valid + int(Y.shape[0] * 0.1)
-    X_test = pd.DataFrame(X.iloc[n_valid * elle: n_test * elle:], copy=True)
-    Y_test = pd.DataFrame(Y.iloc[n_valid: n_test], copy=True)
+    X_test = pd.DataFrame(X.iloc[n_valid * elle:], copy=True)
+    Y_test = pd.DataFrame(Y.iloc[n_valid:], copy=True)
 
     # Standardize the training, validation and test datasets
 
     for column in X_train.columns:
+
         column_mean = X_train[column].mean()
         column_std = X_train[column].std()
 

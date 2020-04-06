@@ -12,7 +12,7 @@
     <a href="https://www.python.org/">
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
-    <a href="https://github.com/robertmartin8/PyPortfolioOpt/graphs/commit-activity">
+    <a href="https://github.com/nicoloceneda/HTQF-LSTM-for-UHFD/graphs/commit-activity">
         <img src="https://img.shields.io/badge/Maintained%3F-yes-brightgreen.svg"
             alt="issues"></a> &nbsp;
 </p>

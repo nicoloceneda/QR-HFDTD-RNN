@@ -4,7 +4,7 @@
     times from the wrds database.
 
     Contact: nicolo.ceneda@student.unisg.ch
-    Last update: 29 March 2020
+    Last update: 18 May 2020
 """
 
 

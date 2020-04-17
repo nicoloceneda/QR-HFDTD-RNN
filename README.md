@@ -20,12 +20,12 @@
 ## Project Structure
 <pre>
 │
-├── Programming and Computing Setup.md    <--  Programming and computing setup required to execute the p-
-│                                              ograms. 
-│
-├── extract_data.py                       <--  This script constructs the command line interface which is
-│        │                                     used to extract, clean and manage trade data for selected 
-│        │                                     symbols, dates and times from the wrds database.
+├── Programming and Computing Setup.md    <--  Programming and computing setup required to execute the 
+│                                              pograms. 
+│                                              
+├── extract_data.py                       <--  This script constructs the command line interface which 
+│        │                                     is used to extract, clean and manage trade data for se- 
+│        │                                     lected symbols, dates and times from the wrds database.
 │        │
 │        └── extract_data_functions.py    <--  This script contains general functions called in 'extract-
 │                                              _data.py'. Functions specific to the 'extract_data.py' are 

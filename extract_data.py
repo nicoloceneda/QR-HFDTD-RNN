@@ -64,7 +64,7 @@ start = time.time()
 # Define the commands available in the command line interface
 
 min_start_date = '2003-09-10'
-max_end_date = '2020-02-31'
+max_end_date = '2020-03-31'
 min_start_time = '09:30:00'
 max_end_time = '16:00:00'
 
@@ -126,7 +126,7 @@ for pos, unwanted_symbol in enumerate(unwanted_symbols):
               wanted_symbol + wanted_suffix))
 
 
-# Check the validity of the input dates and create the list of dates:
+# Check the validity of the input start and end dates and create the list of dates:
 
 if args.start_date > args.end_date:
 
@@ -178,7 +178,7 @@ elif args.start_time < min_start_time and args.end_time > max_end_time:
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
-# 2. DATA EXTRACTION
+# 2. DATA EXTRACTION AND FIRST DATA CLEANING
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -377,8 +377,8 @@ print_output(output_=output, print_output_flag_=args.print_output, head_flag_=Tr
 
 delta = 0.1
 
-k_list = np.arange(41, 141, 20, dtype='int64')
-y_list = np.arange(0.02, 0.10, 0.02)
+k_list = np.arange(41, 121, 20, dtype='int64')
+y_list = np.arange(0.02, 0.08, 0.02)
 k_grid, y_grid = np.meshgrid(k_list, y_list)
 ky_array = np.array([k_grid.ravel(), y_grid.ravel()]).T
 
@@ -490,7 +490,13 @@ print_output(output_=output_aggregate, print_output_flag_=args.print_output, hea
 
 # Create a function to resample observations at lower frequency
 
-freq_list = ['500L', '1S', '2S']
+freq_list = ['2S']
+
+""" ALTERNATIVE IMPLEMENTATION
+    --------------------------
+    You can test different frequencies using: freq_list = ['500L', '1S', '2S', '5S'] 
+"""
+
 nan_frame = pd.DataFrame(columns=['symbol', 'freq', 'ratio'])
 nan_frame['symbol'] = pd.Series(symbol_list)
 
@@ -580,7 +586,7 @@ if args.graph_output:
 
 # Create a dataframe containing the series of prices, returns, moving average returns
 
-elle = 100
+elle = 200  # TODO: allow to modify this parameter
 
 for symbol in symbol_list:
 
@@ -600,7 +606,7 @@ for symbol in symbol_list:
         y = data.iloc[pos]['return']
         Y.append(y)
 
-        data_past = pd.DataFrame(data.iloc[pos - elle: pos], copy=True)  # 0:99 | 1:100 -> 99:198
+        data_past = pd.DataFrame(data.iloc[pos - elle: pos], copy=True)
         r_past = data_past['return']
         r_past_ma = data_past.iloc[-1]['return_ma']
         r_diff = r_past - r_past_ma
@@ -696,7 +702,5 @@ print('\nExecution time: ', end - start)
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 
-# TODO: Addition of dividend and/or split adjustments
-
 # TODO: remove from the current directory the following files, which have been copied from the directory 'official paper code'
-#       LSTM-HTQF.bat; LSTM-HTQF.py; makeData.bat; makeData.py; rawData (folder); readMe.txt. Remove also: building.py
+#       LSTM-HTQF.bat; LSTM-HTQF.py; makeData.bat; makeData.py; rawData (folder); readMe.txt.

@@ -2,6 +2,6 @@
 #$ -cwd
 #$ -m abe
 #$ -M nicolo.ceneda@student.unisg.ch
-source ~/virtualenv/bin/activate
+source venv/bin/activate
 python3 extract_data.py -bg
 

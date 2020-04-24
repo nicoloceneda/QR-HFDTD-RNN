@@ -580,99 +580,41 @@ if args.graph_output:
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
-# 5. TRAINING, VALIDATION, TEST SETS
+# 5. EXPORT THE TIME SERIES OF PRICES
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 
-# Create a dataframe containing the series of prices, returns, moving average returns
+# Save the time series of prices
 
-elle = 200  # TODO: allow to modify this parameter
+if args.debug:
 
-for symbol in symbol_list:
+    if not os.path.isdir('mode bg'):
 
-    # Create the features and target dataframes for the whole set
+        os.mkdir('mode bg')
 
-    data = pd.DataFrame(output_resampled_f[output_resampled_f['sym_root'] == symbol]['price'])
-    log_return = np.diff(np.log(data['price']))
-    data = data.iloc[1:]
-    data['return'] = log_return
-    data['return_ma'] = data['return'].rolling(window=elle).mean()
+    for symbol in symbol_list:
 
-    X = []
-    Y = []
+        if not os.path.isdir('mode bg/' + symbol):
 
-    for pos in range(elle, data.shape[0]):
+            os.mkdir('mode bg/' + symbol)
 
-        y = data.iloc[pos]['return']
-        Y.append(y)
+        data = pd.DataFrame(output_resampled_f[output_resampled_f['sym_root'] == symbol][['date', 'time_m', 'price']])
+        data.to_csv('mode bg/' + symbol + '/data.csv', index=False)
 
-        data_past = pd.DataFrame(data.iloc[pos - elle: pos], copy=True)
-        r_past = data_past['return']
-        r_past_ma = data_past.iloc[-1]['return_ma']
-        r_diff = r_past - r_past_ma
-        data_past['r_diff_2'] = r_diff ** 2
-        data_past['r_diff_3'] = r_diff ** 3
-        data_past['r_diff_4'] = r_diff ** 4
-        X.append(data_past[['return', 'r_diff_2', 'r_diff_3', 'r_diff_4']])
+else:
 
-    X = pd.concat(X, ignore_index=True)
-    Y = pd.DataFrame(Y, columns=['label'])
+    if not os.path.isdir('mode sl'):
 
-    # Define the training, validation and test datasets
+        os.mkdir('mode sl')
 
-    n_train = int(Y.shape[0] * 0.8)
-    n_valid = n_train + int(Y.shape[0] * 0.1)
+    for symbol in symbol_list:
 
-    X_train = pd.DataFrame(X.iloc[:n_train * elle], copy=True)
-    Y_train = pd.DataFrame(Y.iloc[:n_train], copy=True)
+        if not os.path.isdir('mode sl/' + symbol):
 
-    X_valid = pd.DataFrame(X.iloc[n_train * elle: n_valid * elle], copy=True)
-    Y_valid = pd.DataFrame(Y.iloc[n_train: n_valid], copy=True)
+            os.mkdir('mode sl/' + symbol)
 
-    X_test = pd.DataFrame(X.iloc[n_valid * elle:], copy=True)
-    Y_test = pd.DataFrame(Y.iloc[n_valid:], copy=True)
-
-    # Standardize the training, validation and test datasets
-
-    for column in X_train.columns:
-
-        column_mean = X_train[column].mean()
-        column_std = X_train[column].std()
-
-        X_train[column] = (X_train[column] - column_mean) / column_std
-        X_valid[column] = (X_valid[column] - column_mean) / column_std
-        X_test[column] = (X_test[column] - column_mean) / column_std
-
-    Y_mean = Y_train.mean()
-    Y_std = Y_train.std()
-
-    Y_train = (Y_train - Y_mean) / Y_std
-    Y_valid = (Y_valid - Y_mean) / Y_std
-    Y_test = (Y_test - Y_mean) / Y_std
-
-    # Save the training, validation and test datasets
-
-    if not os.path.isdir('datasets'):
-
-        os.mkdir('datasets')
-
-    if not os.path.isdir('datasets/' + symbol):
-
-        os.mkdir('datasets/' + symbol)
-
-    symbol_l = '/{}_{}/'.format(symbol, elle)
-
-    if not os.path.isdir('datasets/' + symbol + symbol_l):
-
-        os.mkdir('datasets/' + symbol + symbol_l)
-
-    X_train.to_csv('datasets/' + symbol + symbol_l + 'X_train.csv', index=False)
-    X_valid.to_csv('datasets/' + symbol + symbol_l + 'X_valid.csv', index=False)
-    X_test.to_csv('datasets/' + symbol + symbol_l + 'X_test.csv', index=False)
-
-    Y_train.to_csv('datasets/' + symbol + symbol_l + 'Y_train.csv', index=False)
-    Y_valid.to_csv('datasets/' + symbol + symbol_l + 'Y_valid.csv', index=False)
-    Y_test.to_csv('datasets/' + symbol + symbol_l + 'Y_test.csv', index=False)
+        data = pd.DataFrame(output_resampled_f[output_resampled_f['sym_root'] == symbol][['date', 'time_m', 'price']])
+        data.to_csv('mode sl/' + symbol + '/data.csv', index=False)
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------

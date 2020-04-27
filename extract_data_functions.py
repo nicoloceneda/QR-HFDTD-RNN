@@ -1,7 +1,7 @@
 """ extract_data_functions.py
     -------------------------
-    This script contains general functions called in 'extract_data.py'. Functions specific to the 'extract_data.py' are not contained in this
-    script.
+    This script contains general functions called in 'extract_data.py'. Functions specific to the 'extract_data.py' are not contained
+    in this script.
 
     Contact: nicolo.ceneda@student.unisg.ch
     Last update: 29 March 2020

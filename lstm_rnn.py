@@ -15,13 +15,13 @@
 
 # Import the libraries
 
-import sys
 import os
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import scipy.stats
 import tensorflow as tf
-from datetime import datetime
+import pyprind
 
 
 # Set the seed
@@ -33,11 +33,18 @@ tf.random.set_seed(1)
 # 1. PREPARE THE DATA
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
+""" FOR DEBUGGING
+symbol = 'AAPL'
+elle = 200
+X = pd.read_csv('datasets/mode sl/datasets split/AAPL/X.csv')
+Y = pd.read_csv('datasets/mode sl/datasets split/AAPL/Y.csv')
+"""
+
 
 # Import the extracted datasets
 
 symbol = 'AAPL'
-data_extracted = pd.read_csv('mode sl/datasets/' + symbol + '/data.csv')
+data_extracted = pd.read_csv('datasets/mode sl/datasets/' + symbol + '/data.csv')
 
 
 # Create the features and target datasets
@@ -45,11 +52,13 @@ data_extracted = pd.read_csv('mode sl/datasets/' + symbol + '/data.csv')
 log_return = np.diff(np.log(data_extracted['price']))
 data = pd.DataFrame({'log_return': log_return})
 
-elle = 100
+elle = 200
 data['log_return_ma'] = data['log_return'].rolling(window=elle).mean()
 
 X = []
 Y = []
+
+pbar = pyprind.ProgBar(50000)
 
 for pos in range(elle, data.shape[0]):
 
@@ -63,6 +72,8 @@ for pos in range(elle, data.shape[0]):
     data_past['log_return_d3'] = r_diff ** 3
     data_past['log_return_d4'] = r_diff ** 4
     X.append(data_past[['log_return', 'log_return_d2', 'log_return_d3', 'log_return_d4']])
+
+    pbar.update()
 
 X = pd.concat(X, ignore_index=True)
 Y = pd.DataFrame(Y, columns=['label'])
@@ -118,16 +129,23 @@ Y_test = Y_test.values
 
 # Create train, validation and test tensorflow datasets
 
-batch_size = 300
+batch_size = 100
+""" PARAMS: 500, 1000 """
+
+buffer_size = Y_train.shape[0]
+""" PARAMS: 10000 """
 
 ds_train = tf.data.Dataset.from_tensor_slices((X_train, Y_train))
-ds_train = ds_train.cache().shuffle(10000).batch(batch_size).repeat()
+ds_train = ds_train.shuffle(buffer_size).batch(batch_size, drop_remainder=True)
+""" ALTERNATIVE: ds_train = ds_train.shuffle(10000).batch(batch_size).repeat() """
 
 ds_valid = tf.data.Dataset.from_tensor_slices((X_valid, Y_valid))
-ds_valid = ds_valid.batch(batch_size).repeat()
+ds_valid = ds_valid.batch(batch_size, drop_remainder=True)
+""" ALTERNATIVE: ds_valid = ds_valid.batch(batch_size).repeat() """
 
 ds_test = tf.data.Dataset.from_tensor_slices((X_test, Y_test))
-ds_test = ds_test.batch(batch_size).repeat()
+ds_test = ds_test.batch(batch_size, drop_remainder=True)
+""" ALTERNATIVE: ds_test = ds_test.batch(batch_size).repeat() """
 
 for batch in ds_train.take(1):
 
@@ -135,15 +153,15 @@ for batch in ds_train.take(1):
     array_targets = batch[1]
 
     print('The dataset is made up of several batches, each containing:'
-          '\n- An array of 300 time series of features'
-          '\n- An array of 300 targets'
+          '\n- An array of time series of features: shape=', array_features.shape,
+          '\n- An array of targets: shape=', array_targets.shape,
           '\n'
           '\nBatch 0'
-          '\n-------'
+          '\n-------',
           '\nTuple 0\n',
           array_features.numpy()[0], array_targets.numpy()[0],
-          '\nTuple 300\n',
-          array_features.numpy()[299], array_targets.numpy()[299])
+          '\nTuple 999\n',
+          array_features.numpy()[99], array_targets.numpy()[99])
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------
@@ -151,16 +169,130 @@ for batch in ds_train.take(1):
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
 
-tau = np.concatenate(([0.01], np.divide(range(1, 20), 20), [0.99])).reshape(1, -1)
-new_tau = np.array([0.01, 0.05, 0.1]).reshape(1, -1)
-quantile_standard_normal = scipy.stats.norm.ppf(tau, loc=0.0, scale=1.0)
-new_quantile_standard_normal = scipy.stats.norm.ppf(new_tau, loc=0.0, scale=1.0)
+# Create the model
 
 A = 4
-n_hidden = 16 # TODO: = int(sys.argv[3])
-n_outputs = 4
+hidden_dim = 16
+output_dim = 4
+
+lstm_model = tf.keras.models.Sequential()
+lstm_model.add(tf.keras.layers.LSTM(units=hidden_dim, return_sequences=False, input_shape=X_train.shape[-2:]))
+lstm_model.add(tf.keras.layers.Dense(units=output_dim, activation='tanh'))
 
 
+# Print the model summary
+
+lstm_model.summary()
+
+print('\nLSTM layer'
+      '\n----------'
+      '\nWeight kernel:            4(FE x HU)          = (FE x 4HU) =', lstm_model.weights[0].shape,
+      '\nWeight recurrent kernel:  4(HU x HU)          = (HU x 4HU) =', lstm_model.weights[1].shape,
+      '\nWeight bias:              4(BS x HU) = 4(HU,) = (4HU,)     =', lstm_model.weights[2].shape,
+      '\n                                                             -------'
+      '\nTotal                                                          1344')
+
+print('\nDENSE layer'
+      '\n-----------'
+      '\nWeight kernel:                                              ', lstm_model.weights[3].shape,
+      '\nWeight :                                                    ', lstm_model.weights[4].shape,
+      '\n                                                             -------',
+      '\nTotal                                                           68')
+
+
+# Create additional variables
+
+tau = tf.constant(np.concatenate(([0.01], np.divide(range(1, 20), 20), [0.99])).reshape(1, -1), dtype=tf.float32)
+new_tau = tf.constant(np.array([0.01, 0.05, 0.1]).reshape(1, -1), dtype=tf.float32)
+quant_std_norm = tf.constant(scipy.stats.norm.ppf(tau, loc=0.0, scale=1.0), dtype=tf.float32)
+new_quant_std_norm = tf.constant(scipy.stats.norm.ppf(new_tau, loc=0.0, scale=1.0), dtype=tf.float32)
+add_constant = tf.constant([0, 1, 1, 1], shape=(1, 4), dtype=tf.float32)
+
+
+# Define the loss function
+
+def q_calculator(Y_predicted):
+
+    # params = tf.add(Y_predicted, add_constant) # TODO: understand this part
+    params = Y_predicted
+    mu = tf.reshape(params[:, 0], [-1, 1])
+    sig = tf.reshape(params[:, 1], [-1, 1])
+    u_coeff = tf.reshape(params[:, 2], [-1, 1])
+    d_coeff = tf.reshape(params[:, 3], [-1, 1])
+    u_factor = tf.exp(tf.matmul(u_coeff, quant_std_norm)) / A + 1
+    d_factor = tf.exp(-tf.matmul(d_coeff, quant_std_norm)) / A + 1
+    prod_factor = tf.multiply(u_factor, d_factor)
+    q = tf.add(mu, tf.multiply(sig, tf.multiply(quant_std_norm, prod_factor)))
+
+    return q
+
+def custom_loss_function(Y_actual, Y_predicted):
+
+    Q = q_calculator(Y_predicted)
+
+    error = tf.subtract(tf.cast(Y_actual, dtype=tf.float32), Q) # TODO: Understand why Y_actual is the true quantile
+    error_1 = tf.multiply(tau, error)
+    error_2 = tf.multiply(tau - 1, error)
+    loss = tf.reduce_mean(tf.maximum(error_1, error_2))
+
+    return loss
+
+
+# Compile the model
+
+lstm_model.compile(optimizer=tf.keras.optimizers.Adam(), loss=custom_loss_function)
+
+
+# -------------------------------------------------------------------------------
+# 3. TRAIN THE MODEL
+# -------------------------------------------------------------------------------
+
+
+# Train the lstm recurrent neural network
+
+n_epochs = 10
+n_steps_per_epoch = 600
+n_validation_steps = 100
+
+history = lstm_model.fit(ds_train, epochs=n_epochs, validation_data=ds_valid)
+""" ALTERNATIVE: history = lstm_model.fit(ds_train, epochs=n_epochs, steps_per_epoch=n_steps_per_epoch,
+                                          validation_data=ds_valid, validation_steps=n_validation_steps) 
+"""
+
+# Visualize the learning curve
+
+hist = history.history
+
+plt.figure()
+plt.plot(hist['loss'], 'b')
+plt.xlabel('Epoch')
+plt.title('Training loss')
+plt.tick_params(axis='both', which='major')
+plt.tight_layout()
+plt.savefig('images_lstm_rnn/train_loss.png')
+
+plt.figure()
+plt.plot(hist['val_loss'], 'r')
+plt.xlabel('Epoch')
+plt.title('Validation loss')
+plt.tick_params(axis='both', which='major')
+plt.tight_layout()
+plt.savefig('images_lstm_rnn/valid_loss.png')
+
+
+# -------------------------------------------------------------------------------
+# 3. GENERAL
+# -------------------------------------------------------------------------------
+
+
+
+
+# -------------------------------------------------------------------------------
+# 3. GENERAL
+# -------------------------------------------------------------------------------
+
+
+plt.show()
 
 
 

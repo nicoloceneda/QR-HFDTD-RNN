@@ -33,11 +33,11 @@ tf.random.set_seed(1)
 # 1. PREPARE THE DATA
 # ------------------------------------------------------------------------------------------------------------------------------------------
 
-""" FOR DEBUGGING
-symbol = 'AAPL'
-elle = 200
-X = pd.read_csv('datasets/mode sl/datasets split/AAPL/X.csv')
-Y = pd.read_csv('datasets/mode sl/datasets split/AAPL/Y.csv')
+""" FOR DEBUGGING PT 1
+    symbol = 'AAPL'
+    elle = 200
+    X = pd.read_csv('datasets/mode sl/datasets split/AAPL/X.csv')
+    Y = pd.read_csv('datasets/mode sl/datasets split/AAPL/Y.csv')
 """
 
 
@@ -77,6 +77,12 @@ for pos in range(elle, data.shape[0]):
 
 X = pd.concat(X, ignore_index=True)
 Y = pd.DataFrame(Y, columns=['label'])
+
+
+""" FOR DEBUGGING PT 2
+    X.to_csv('datasets/mode sl/datasets split/AAPL/X.csv', index=False)
+    Y.to_csv('datasets/mode sl/datasets split/AAPL/Y.csv', index=False)
+"""
 
 
 # Define the training, validation and test subsets
@@ -203,44 +209,45 @@ print('\nDENSE layer'
 # Create additional variables
 
 tau = tf.constant(np.concatenate(([0.01], np.divide(range(1, 20), 20), [0.99])).reshape(1, -1), dtype=tf.float32)
-new_tau = tf.constant(np.array([0.01, 0.05, 0.1]).reshape(1, -1), dtype=tf.float32)
-quant_std_norm = tf.constant(scipy.stats.norm.ppf(tau, loc=0.0, scale=1.0), dtype=tf.float32)
-new_quant_std_norm = tf.constant(scipy.stats.norm.ppf(new_tau, loc=0.0, scale=1.0), dtype=tf.float32)
+z_tau = tf.constant(scipy.stats.norm.ppf(tau, loc=0.0, scale=1.0), dtype=tf.float32)
+tau_new = tf.constant(np.array([0.01, 0.05, 0.1]).reshape(1, -1), dtype=tf.float32)
+z_tau_new = tf.constant(scipy.stats.norm.ppf(tau_new, loc=0.0, scale=1.0), dtype=tf.float32)
 add_constant = tf.constant([0, 1, 1, 1], shape=(1, 4), dtype=tf.float32)
 
 
-# Define the loss function
+# Define the loss function that produces a scalar for each batch (Equation 60)
 
 def q_calculator(Y_predicted):
 
-    # params = tf.add(Y_predicted, add_constant) # TODO: understand this part
-    params = Y_predicted
-    mu = tf.reshape(params[:, 0], [-1, 1])
-    sig = tf.reshape(params[:, 1], [-1, 1])
-    u_coeff = tf.reshape(params[:, 2], [-1, 1])
-    d_coeff = tf.reshape(params[:, 3], [-1, 1])
-    u_factor = tf.exp(tf.matmul(u_coeff, quant_std_norm)) / A + 1
-    d_factor = tf.exp(-tf.matmul(d_coeff, quant_std_norm)) / A + 1
-    prod_factor = tf.multiply(u_factor, d_factor)
-    q = tf.add(mu, tf.multiply(sig, tf.multiply(quant_std_norm, prod_factor)))
+    # params = tf.add(Y_predicted, add_constant)                       # TODO: understand this part
+    params = Y_predicted                                               # (BS x 4)
+    mu = tf.reshape(params[:, 0], [-1, 1])                             # (BS x 1)
+    sig = tf.reshape(params[:, 1], [-1, 1])                            # (BS x 1)
+    u_coeff = tf.reshape(params[:, 2], [-1, 1])                        # (BS x 1)
+    d_coeff = tf.reshape(params[:, 3], [-1, 1])                        # (BS x 1)
+    u_factor = tf.exp(tf.matmul(u_coeff, z_tau)) / A + 1               # (BS x 1)(1 x n_z_tau) = (BS x n_z_tau)
+    d_factor = tf.exp(-tf.matmul(d_coeff, z_tau)) / A + 1              # (BS x 1)(1 x n_z_tau) = (BS x n_z_tau)
+    prod_factor = tf.multiply(u_factor, d_factor)                      # (BS x n_z_tau)*(BS x n_z_tau) = (BS x n_z_tau)
+    q = tf.add(mu, tf.multiply(sig, tf.multiply(z_tau, prod_factor)))  # (BS x 1)+(BS x 1)*(1 x n_z_tau)*(BS x n_z_tau) = (BS x n_z_tau)
 
     return q
 
-def custom_loss_function(Y_actual, Y_predicted):
+
+def pinball_loss_function(Y_actual, Y_predicted):
 
     Q = q_calculator(Y_predicted)
 
-    error = tf.subtract(tf.cast(Y_actual, dtype=tf.float32), Q) # TODO: Understand why Y_actual is the true quantile
-    error_1 = tf.multiply(tau, error)
-    error_2 = tf.multiply(tau - 1, error)
-    loss = tf.reduce_mean(tf.maximum(error_1, error_2))
+    error = tf.subtract(tf.cast(Y_actual, dtype=tf.float32), Q)        # (BS x 1)-(BS x n_z_tau) = (BS x n_z_tau)
+    error_1 = tf.multiply(tau, error)                                  # (1 x n_tau)*(BS x n_z_tau) = (BS x n_z_tau)
+    error_2 = tf.multiply(tau - 1, error)                              # (1 x n_tau)*(BS x n_z_tau) = (BS x n_z_tau)
+    loss = tf.reduce_mean(tf.maximum(error_1, error_2))                # (BS x n_z_tau) -> (1,)
 
     return loss
 
 
 # Compile the model
 
-lstm_model.compile(optimizer=tf.keras.optimizers.Adam(), loss=custom_loss_function)
+lstm_model.compile(optimizer=tf.keras.optimizers.Adam(), loss=pinball_loss_function)
 
 
 # -------------------------------------------------------------------------------
@@ -255,9 +262,11 @@ n_steps_per_epoch = 600
 n_validation_steps = 100
 
 history = lstm_model.fit(ds_train, epochs=n_epochs, validation_data=ds_valid)
-""" ALTERNATIVE: history = lstm_model.fit(ds_train, epochs=n_epochs, steps_per_epoch=n_steps_per_epoch,
+""" ALTERNATIVE: 
+   history = lstm_model.fit(ds_train, epochs=n_epochs, steps_per_epoch=n_steps_per_epoch,
                                           validation_data=ds_valid, validation_steps=n_validation_steps) 
 """
+
 
 # Visualize the learning curve
 
@@ -281,14 +290,36 @@ plt.savefig('images_lstm_rnn/valid_loss.png')
 
 
 # -------------------------------------------------------------------------------
-# 3. GENERAL
+# 4. MAKE PREDICTIONS
 # -------------------------------------------------------------------------------
 
 
+# Predict the parameters and the quantiles
+
+params_record_train = lstm_model.predict(X_train)                      # (BS X 4) # TODO: BS vs number of batches
+q_record_train = q_calculator(params_record_train)                     # (BS x n_z_tau)
+
+params_record_test = lstm_model.predict(X_test)                        # (BS X 4)
+q_record_test = q_calculator(params_record_test)                       # (BS x n_z_tau)
+
+
+# Save the predictions
+
+results_folder = 'datasets/mode sl/results/' + symbol
+
+if not os.path.isdir(results_folder):
+
+    os.mkdir(results_folder)
+
+pd.DataFrame(params_record_train, columns=['mu', 'sigma', 'u_coeff', 'd_coeff']).to_csv(results_folder + '/params_record_train.csv', index=False)
+pd.DataFrame(q_record_train.numpy(), columns=tau.numpy().tolist()[0]).to_csv(results_folder + '/q_record_train.csv', index=False)
+
+pd.DataFrame(params_record_test, columns=['mu', 'sigma', 'u_coeff', 'd_coeff']).to_csv(results_folder + '/params_record_test.csv', index=False)
+pd.DataFrame(q_record_test.numpy(), columns=tau.numpy().tolist()[0]).to_csv(results_folder + '/q_record_test.csv', index=False)
 
 
 # -------------------------------------------------------------------------------
-# 3. GENERAL
+# 5. GENERAL
 # -------------------------------------------------------------------------------
 
 

@@ -184,6 +184,7 @@ output_dim = 4
 lstm_model = tf.keras.models.Sequential()
 lstm_model.add(tf.keras.layers.LSTM(units=hidden_dim, return_sequences=False, input_shape=X_train.shape[-2:]))
 lstm_model.add(tf.keras.layers.Dense(units=output_dim, activation='tanh'))
+lstm_model.add(tf.keras.layers.Lambda(lambda x: x + np.array([0, 1, 1, 1])))
 
 
 # Print the model summary
@@ -212,19 +213,16 @@ tau = tf.constant(np.concatenate(([0.01], np.divide(range(1, 20), 20), [0.99])).
 z_tau = tf.constant(scipy.stats.norm.ppf(tau, loc=0.0, scale=1.0), dtype=tf.float32)
 tau_new = tf.constant(np.array([0.01, 0.05, 0.1]).reshape(1, -1), dtype=tf.float32)
 z_tau_new = tf.constant(scipy.stats.norm.ppf(tau_new, loc=0.0, scale=1.0), dtype=tf.float32)
-add_constant = tf.constant([0, 1, 1, 1], shape=(1, 4), dtype=tf.float32)
 
 
 # Define the loss function that produces a scalar for each batch (Equation 60)
 
-def q_calculator(Y_predicted):
+def q_calculator(Y_predicted):                                         # (BS x 4)
 
-    # params = tf.add(Y_predicted, add_constant)                       # TODO: understand this part
-    params = Y_predicted                                               # (BS x 4)
-    mu = tf.reshape(params[:, 0], [-1, 1])                             # (BS x 1)
-    sig = tf.reshape(params[:, 1], [-1, 1])                            # (BS x 1)
-    u_coeff = tf.reshape(params[:, 2], [-1, 1])                        # (BS x 1)
-    d_coeff = tf.reshape(params[:, 3], [-1, 1])                        # (BS x 1)
+    mu = tf.reshape(Y_predicted[:, 0], [-1, 1])                        # (BS x 1)
+    sig = tf.reshape(Y_predicted[:, 1], [-1, 1])                       # (BS x 1)
+    u_coeff = tf.reshape(Y_predicted[:, 2], [-1, 1])                   # (BS x 1)
+    d_coeff = tf.reshape(Y_predicted[:, 3], [-1, 1])                   # (BS x 1)
     u_factor = tf.exp(tf.matmul(u_coeff, z_tau)) / A + 1               # (BS x 1)(1 x n_z_tau) = (BS x n_z_tau)
     d_factor = tf.exp(-tf.matmul(d_coeff, z_tau)) / A + 1              # (BS x 1)(1 x n_z_tau) = (BS x n_z_tau)
     prod_factor = tf.multiply(u_factor, d_factor)                      # (BS x n_z_tau)*(BS x n_z_tau) = (BS x n_z_tau)
@@ -235,9 +233,8 @@ def q_calculator(Y_predicted):
 
 def pinball_loss_function(Y_actual, Y_predicted):
 
-    Q = q_calculator(Y_predicted)
-
-    error = tf.subtract(tf.cast(Y_actual, dtype=tf.float32), Q)        # (BS x 1)-(BS x n_z_tau) = (BS x n_z_tau)
+    q = q_calculator(Y_predicted)                                      # (BS x n_z_tau)
+    error = tf.subtract(tf.cast(Y_actual, dtype=tf.float32), q)        # (BS x 1)-(BS x n_z_tau) = (BS x n_z_tau)
     error_1 = tf.multiply(tau, error)                                  # (1 x n_tau)*(BS x n_z_tau) = (BS x n_z_tau)
     error_2 = tf.multiply(tau - 1, error)                              # (1 x n_tau)*(BS x n_z_tau) = (BS x n_z_tau)
     loss = tf.reduce_mean(tf.maximum(error_1, error_2))                # (BS x n_z_tau) -> (1,)
@@ -296,11 +293,15 @@ plt.savefig('images_lstm_rnn/valid_loss.png')
 
 # Predict the parameters and the quantiles
 
-params_record_train = lstm_model.predict(X_train)                      # (BS X 4) # TODO: BS vs number of batches
-q_record_train = q_calculator(params_record_train)                     # (BS x n_z_tau)
+params_record_train = lstm_model.predict(X_train)
+params_record_train = pd.DataFrame(params_record_train, columns=['mu', 'sigma', 'u_coeff', 'd_coeff'])  # (NB X 4) # TODO: BS vs number  of batches
+q_record_train = q_calculator(params_record_train)
+q_record_train = pd.DataFrame(q_record_train.numpy(), columns=tau.numpy().tolist()[0])                  # (NB x n_z_tau)
 
-params_record_test = lstm_model.predict(X_test)                        # (BS X 4)
-q_record_test = q_calculator(params_record_test)                       # (BS x n_z_tau)
+params_record_test = lstm_model.predict(X_test)                                                         # (BS X 4)
+params_record_test = pd.DataFrame(params_record_test, columns=['mu', 'sigma', 'u_coeff', 'd_coeff'])
+q_record_test = q_calculator(params_record_test)                                                        # (BS x n_z_tau)
+q_record_test = pd.DataFrame(q_record_test.numpy(), columns=tau.numpy().tolist()[0])
 
 
 # Save the predictions
@@ -311,11 +312,11 @@ if not os.path.isdir(results_folder):
 
     os.mkdir(results_folder)
 
-pd.DataFrame(params_record_train, columns=['mu', 'sigma', 'u_coeff', 'd_coeff']).to_csv(results_folder + '/params_record_train.csv', index=False)
-pd.DataFrame(q_record_train.numpy(), columns=tau.numpy().tolist()[0]).to_csv(results_folder + '/q_record_train.csv', index=False)
+params_record_train.to_csv(results_folder + '/params_record_train.csv', index=False)
+q_record_train.to_csv(results_folder + '/q_record_train.csv', index=False)
 
-pd.DataFrame(params_record_test, columns=['mu', 'sigma', 'u_coeff', 'd_coeff']).to_csv(results_folder + '/params_record_test.csv', index=False)
-pd.DataFrame(q_record_test.numpy(), columns=tau.numpy().tolist()[0]).to_csv(results_folder + '/q_record_test.csv', index=False)
+params_record_test.to_csv(results_folder + '/params_record_test.csv', index=False)
+q_record_test.to_csv(results_folder + '/q_record_test.csv', index=False)
 
 
 # -------------------------------------------------------------------------------
@@ -324,8 +325,5 @@ pd.DataFrame(q_record_test.numpy(), columns=tau.numpy().tolist()[0]).to_csv(resu
 
 
 plt.show()
-
-
-
 
 

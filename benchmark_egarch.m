@@ -8,13 +8,13 @@
 
 symbol = 'AAPL';
 
-Y_train = table2array(readtable(strcat("datasets/mode sl/datasets std/", symbol, "/Y_train.csv")));
-Y_valid = table2array(readtable(strcat("datasets/mode sl/datasets std/", symbol, "/Y_valid.csv")));
-Y_test = table2array(readtable(strcat("datasets/mode sl/datasets std/", symbol, "/Y_test.csv")));
+Y_train = table2array(readtable("NASDAQ100/data_100/Y_train.csv"));
+Y_valid = table2array(readtable("NASDAQ100/data_100/Y_validate.csv"));
+Y_test = table2array(readtable("NASDAQ100/data_100/Y_test.csv"));
 
 
 % -------------------------------------------------------------------------------
-% 1. egarch MODEL - NORMAL
+% 1. EGARCH MODEL - NORMAL
 % -------------------------------------------------------------------------------
 
 
@@ -27,8 +27,8 @@ for p = 1:4
     
     for q = 1:4
         
-        emodel_garch = egarch('GARCHLags', p, 'ARCHLags', q, 'Distribution', 'Gaussian');
-        estimated_egarch = estimate(emodel_garch, Y_train, 'Display', 'off');
+        model_egarch = egarch('GARCHLags', p, 'ARCHLags', q, 'Distribution', 'Gaussian');
+        estimated_egarch = estimate(model_egarch, Y_train, 'Display', 'off');
         cond_variance_egarch = infer(estimated_egarch, [Y_train; Y_valid]);
         valid_variance_egarch = cond_variance_egarch(length(Y_train) + 1: length(Y_train) + length(Y_valid));
         valid_sigma_egarch = sqrt(valid_variance_egarch);                  
@@ -52,8 +52,8 @@ end
 
 % Calculate the volatility for the test set
 
-emodel_garch = egarch('GARCHLags', best_p, 'ARCHLags', best_q, 'Distribution', 'Gaussian');
-estimated_egarch = estimate(emodel_garch, Y_train, 'Display', 'off');
+model_egarch = egarch('GARCHLags', best_p, 'ARCHLags', best_q, 'Distribution', 'Gaussian');
+estimated_egarch = estimate(model_egarch, Y_train, 'Display', 'off');
 cond_variance_egarch = infer(estimated_egarch, [Y_train; Y_valid; Y_test]);
 test_variance_egarch = cond_variance_egarch(length(Y_train) + length(Y_valid) + 1: length(Y_train) + length(Y_valid) + length(Y_test));
 test_sigma_egarch = sqrt(test_variance_egarch);
@@ -65,7 +65,7 @@ tau = [0.01, 0.05: 0.05: 0.95, 0.99];
 Q = qn_calculator(test_sigma_egarch, tau);
 loss = pinball_loss_function(Y_test, Q, tau);
 
-disp("egarch-N: Test set params and loss for tau:");
+disp("EGARCH-N: Test set params and loss for tau:");
 disp([best_p, best_q, loss]);
 
 
@@ -75,12 +75,12 @@ tau = [0.01,0.05,0.1];
 Q = qn_calculator(test_sigma_egarch, tau);
 loss = pinball_loss_function(Y_test, Q, tau);
 
-disp("egarch-N: Test set params and loss for new tau:");
+disp("EGARCH-N: Test set params and loss for new tau:");
 disp([best_p, best_q, loss]);
 
 
 % -------------------------------------------------------------------------------
-% 2. egarch MODEL - STUDENT
+% 2. EGARCH MODEL - STUDENT
 % -------------------------------------------------------------------------------
 
 
@@ -93,8 +93,8 @@ for p = 1:4
     
     for q = 1:4
         
-        emodel_garch = egarch('GARCHLags', p, 'ARCHLags', q, 'Distribution', 't');
-        estimated_egarch = estimate(emodel_garch, Y_train, 'Display', 'off');
+        model_egarch = egarch('GARCHLags', p, 'ARCHLags', q, 'Distribution', 't');
+        estimated_egarch = estimate(model_egarch, Y_train, 'Display', 'off');
         cond_variance_egarch = infer(estimated_egarch, [Y_train; Y_valid]);
         valid_variance_egarch = cond_variance_egarch(length(Y_train) + 1: length(Y_train) + length(Y_valid));
         nu = estimated_egarch.Distribution.DoF;
@@ -119,8 +119,8 @@ end
 
 % Calculate the volatility for the test set
 
-emodel_garch = egarch('GARCHLags', best_p, 'ARCHLags', best_q, 'Distribution', 't');
-estimated_egarch = estimate(emodel_garch, Y_train, 'Display', 'off');
+model_egarch = egarch('GARCHLags', best_p, 'ARCHLags', best_q, 'Distribution', 't');
+estimated_egarch = estimate(model_egarch, Y_train, 'Display', 'off');
 cond_variance_egarch = infer(estimated_egarch, [Y_train; Y_valid; Y_test]);
 test_variance_egarch = cond_variance_egarch(length(Y_train) + length(Y_valid) + 1: length(Y_train) + length(Y_valid) + length(Y_test));
 nu = estimated_egarch.Distribution.DoF;
@@ -133,7 +133,7 @@ tau = [0.01, 0.05: 0.05: 0.95, 0.99];
 Q = qt_calculator(test_sigma_egarch, tau, nu);
 loss = pinball_loss_function(Y_test, Q, tau);
 
-disp("egarch-t: Test set params and loss for tau:");
+disp("EGARCH-t: Test set params and loss for tau:");
 disp([best_p, best_q, loss]);
 
 
@@ -143,12 +143,12 @@ tau = [0.01,0.05,0.1];
 Q = qt_calculator(test_sigma_egarch, tau, nu);
 loss = pinball_loss_function(Y_test, Q, tau);
 
-disp("egarch-t: Test set params and loss for new tau:");
+disp("EGARCH-t: Test set params and loss for new tau:");
 disp([best_p, best_q, loss]);
 
 
 % -------------------------------------------------------------------------------
-% 3. egarch MODEL - STUDENT - AR
+% 3. EGARCH MODEL - STUDENT - AR
 % -------------------------------------------------------------------------------
 
 
@@ -163,17 +163,17 @@ for p = 1:4
         
         for r = 1:4
         
-            emodel_garch = arima('ARLags', r, 'Variance', egarch('GARCHLags', p, 'ARCHLags', q, 'Distribution', 't'));
-            estimated_egarch = estimate(emodel_garch, Y_train, 'Display', 'off');
-            [residual_garch, cond_variance_egarch] = infer(estimated_egarch, [Y_train; Y_valid]);
-            valid_mean_garch = Y_valid - residual_garch(length(Y_train) + 1: length(Y_train) + length(Y_valid));
+            model_egarch = arima('ARLags', r, 'Variance', egarch('GARCHLags', p, 'ARCHLags', q, 'Distribution', 't'));
+            estimated_egarch = estimate(model_egarch, Y_train, 'Display', 'off');
+            [residual_egarch, cond_variance_egarch] = infer(estimated_egarch, [Y_train; Y_valid]);
+            valid_mean_egarch = Y_valid - residual_egarch(length(Y_train) + 1: length(Y_train) + length(Y_valid));
             valid_variance_egarch = cond_variance_egarch(length(Y_train) + 1: length(Y_train) + length(Y_valid));
             nu = estimated_egarch.Variance.Distribution.DoF;
             valid_sigma_egarch = sqrt(valid_variance_egarch * (nu - 2) / nu);                  
         
             tau = [0.01, 0.05: 0.05: 0.95, 0.99];                            
-            Q = qtar_calculator(valid_sigma_egarch, valid_mean_garch, tau, nu);                        
-            losses(p,q, r) = pinball_loss_function(Y_valid, Q, tau);           
+            Q = qtar_calculator(valid_sigma_egarch, valid_mean_egarch, tau, nu);                        
+            losses(p, q, r) = pinball_loss_function(Y_valid, Q, tau);
         
             if losses(p, q, r) < minimum_loss
             
@@ -193,10 +193,10 @@ end
 
 % Calculate the volatility for the test set
 
-emodel_garch = arima('ARLags', best_r, 'Variance', egarch('GARCHLags', best_p, 'ARCHLags', best_q, 'Distribution', 't'));
-estimated_egarch = estimate(emodel_garch, Y_train, 'Display', 'off');
-[residual_garch, cond_variance_egarch] = infer(estimated_egarch, [Y_train; Y_valid; Y_test]);
-test_mean_garch = Y_test - residual_garch(length(Y_train) + length(Y_valid) + 1: length(Y_train) + length(Y_valid) + length(Y_test));
+model_egarch = arima('ARLags', best_r, 'Variance', egarch('GARCHLags', best_p, 'ARCHLags', best_q, 'Distribution', 't'));
+estimated_egarch = estimate(model_egarch, Y_train, 'Display', 'off');
+[residual_egarch, cond_variance_egarch] = infer(estimated_egarch, [Y_train; Y_valid; Y_test]);
+test_mean_egarch = Y_test - residual_egarch(length(Y_train) + length(Y_valid) + 1: length(Y_train) + length(Y_valid) + length(Y_test));
 test_variance_egarch = cond_variance_egarch(length(Y_train) + length(Y_valid) + 1: length(Y_train) + length(Y_valid) + length(Y_test));
 nu = estimated_egarch.Variance.Distribution.DoF;
 test_sigma_egarch = sqrt(test_variance_egarch * (nu - 2) / nu); 
@@ -205,20 +205,20 @@ test_sigma_egarch = sqrt(test_variance_egarch * (nu - 2) / nu);
 % Calculate the loss for the tau set
 
 tau = [0.01, 0.05: 0.05: 0.95, 0.99];
-Q = qtar_calculator(test_sigma_egarch, test_mean_garch, tau, nu);
+Q = qtar_calculator(test_sigma_egarch, test_mean_egarch, tau, nu);
 loss = pinball_loss_function(Y_test, Q, tau);
 
-disp("egarch-t + AR: Test set params and loss for tau:");
+disp("EGARCH-t + AR: Test set params and loss for tau:");
 disp([best_p, best_q, best_r, loss]);
 
 
 % Calculate the loss for the new tau set
 
 tau = [0.01,0.05,0.1];
-Q = qtar_calculator(test_sigma_egarch, test_mean_garch, tau, nu);
+Q = qtar_calculator(test_sigma_egarch, test_mean_egarch, tau, nu);
 loss = pinball_loss_function(Y_test, Q, tau);
 
-disp("egarch-t + AR: Test set params and loss for new tau:");
+disp("EGARCH-t + AR: Test set params and loss for new tau:");
 disp([best_p, best_q, best_r, loss]);
 
 

@@ -107,9 +107,11 @@ if not os.path.isdir(results_folder):
     os.mkdir(results_folder)
 
 X_train.to_csv(results_folder + '/X_train.csv', index=False)
-X_valid.to_csv(results_folder + '/X_valid.csv', index=False)
-X_test.to_csv(results_folder + '/X_test.csv', index=False)
-
 Y_train.to_csv(results_folder + '/Y_train.csv', index=False)
+
+X_valid.to_csv(results_folder + '/X_valid.csv', index=False)
 Y_valid.to_csv(results_folder + '/Y_valid.csv', index=False)
+
+
+X_test.to_csv(results_folder + '/X_test.csv', index=False)
 Y_test.to_csv(results_folder + '/Y_test.csv', index=False)

@@ -6,9 +6,11 @@
 
 % Import the train, validation and test sets
 
-Y_train = table2array(readtable("NASDAQ100/data_100/Y_train.csv"));
-Y_valid = table2array(readtable("NASDAQ100/data_100/Y_validate.csv"));
-Y_test = table2array(readtable("NASDAQ100/data_100/Y_test.csv"));
+symbol = 'AAPL';
+
+Y_train = table2array(readtable(strcat("datasets/mode sl/datasets std/", symbol, "/Y_train.csv")));
+Y_valid = table2array(readtable(strcat("datasets/mode sl/datasets std/", symbol, "/Y_valid.csv")));
+Y_test = table2array(readtable(strcat("datasets/mode sl/datasets std/", symbol, "/Y_test.csv")));
 
 
 % -------------------------------------------------------------------------------
@@ -146,7 +148,7 @@ disp([best_p, best_q, loss]);
 
 
 % -------------------------------------------------------------------------------
-% 3. GARCH MODEL - STUDENT
+% 3. GARCH MODEL - STUDENT - AR
 % -------------------------------------------------------------------------------
 
 
@@ -171,7 +173,7 @@ for p = 1:4
         
             tau = [0.01, 0.05: 0.05: 0.95, 0.99];                            
             Q = qtar_calculator(valid_sigma_garch, valid_mean_garch, tau, nu);                        
-            losses(p,q, r) = pinball_loss_function(Y_valid, Q, tau);           
+            losses(p, q, r) = pinball_loss_function(Y_valid, Q, tau);
         
             if losses(p, q, r) < minimum_loss
             

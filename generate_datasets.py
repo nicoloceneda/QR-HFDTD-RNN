@@ -1,6 +1,10 @@
 """ generate_datasets.py
     --------------------
-    This script generates the train, validation and test sets for a specified parameter elle.
+    This script generates the train, validation and test sets.
+
+    Parameters to change:
+    - symbol
+    - elle
 
     Contact: nicolo.ceneda@student.unisg.ch
     Last update: 18 May 2020
@@ -15,9 +19,9 @@
 # Import the libraries
 
 import os
+import sys
 import numpy as np
 import pandas as pd
-import pyprind
 
 
 # -------------------------------------------------------------------------------
@@ -27,8 +31,8 @@ import pyprind
 
 # Import the extracted datasets
 
-symbol = 'AAPL'
-data_extracted = pd.read_csv('datasets/mode sl/datasets/' + symbol + '/data.csv')
+symbol = sys.argv[1]
+data_extracted = pd.read_csv('data/mode sl/datasets/' + symbol + '/data.csv')
 
 
 # Create the features and target datasets
@@ -36,13 +40,11 @@ data_extracted = pd.read_csv('datasets/mode sl/datasets/' + symbol + '/data.csv'
 log_return = np.diff(np.log(data_extracted['price']))
 data = pd.DataFrame({'log_return': log_return})
 
-elle = 200
+elle = int(sys.argv[2])
 data['log_return_ma'] = data['log_return'].rolling(window=elle).mean()
 
 X = []
 Y = []
-
-pbar = pyprind.ProgBar(50000)
 
 for pos in range(elle, data.shape[0]):
 
@@ -56,8 +58,6 @@ for pos in range(elle, data.shape[0]):
     data_past['log_return_d3'] = r_diff ** 3
     data_past['log_return_d4'] = r_diff ** 4
     X.append(data_past[['log_return', 'log_return_d2', 'log_return_d3', 'log_return_d4']])
-
-    pbar.update()
 
 X = pd.concat(X, ignore_index=True)
 Y = pd.DataFrame(Y, columns=['label'])
@@ -100,18 +100,21 @@ Y_test = (Y_test - Y_mean) / Y_std
 
 # Save the standardized returns
 
-results_folder = 'datasets/mode sl/datasets std/' + symbol
+if not os.path.isdir('data/mode sl/datasets std'):
 
-if not os.path.isdir(results_folder):
+    os.mkdir('data/mode sl/datasets std')
 
-    os.mkdir(results_folder)
+symbol_elle = symbol + '_' + str(elle)
 
-X_train.to_csv(results_folder + '/X_train.csv', index=False)
-Y_train.to_csv(results_folder + '/Y_train.csv', index=False)
+if not os.path.isdir('data/mode sl/datasets std/' + symbol_elle):
 
-X_valid.to_csv(results_folder + '/X_valid.csv', index=False)
-Y_valid.to_csv(results_folder + '/Y_valid.csv', index=False)
+    os.mkdir('data/mode sl/datasets std/' + symbol_elle)
 
+X_train.to_csv('data/mode sl/datasets std/' + symbol_elle + '/X_train.csv', index=False)
+Y_train.to_csv('data/mode sl/datasets std/' + symbol_elle + '/Y_train.csv', index=False)
 
-X_test.to_csv(results_folder + '/X_test.csv', index=False)
-Y_test.to_csv(results_folder + '/Y_test.csv', index=False)
+X_valid.to_csv('data/mode sl/datasets std/' + symbol_elle + '/X_valid.csv', index=False)
+Y_valid.to_csv('data/mode sl/datasets std/' + symbol_elle + '/Y_valid.csv', index=False)
+
+X_test.to_csv('data/mode sl/datasets std/' + symbol_elle + '/X_test.csv', index=False)
+Y_test.to_csv('data/mode sl/datasets std/' + symbol_elle + '/Y_test.csv', index=False)

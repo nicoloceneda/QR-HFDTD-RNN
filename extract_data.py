@@ -443,7 +443,7 @@ for pos, symbol in enumerate(symbol_list):
             outlier_frame.loc[pos, 'y'] = y
             not_outlier_sym_f = not_outlier_sym
 
-        elif outlier_num_sym > outlier_frame.loc[pos, 'out_num']:
+        elif outlier_num_sym < outlier_frame.loc[pos, 'out_num']:  # >
 
             outlier_frame.loc[pos, 'out_num'] = outlier_num_sym
             outlier_frame.loc[pos, 'k'] = k
@@ -490,7 +490,7 @@ print_output(output_=output_aggregate, print_output_flag_=args.print_output, hea
 
 # Create a function to resample observations at lower frequency
 
-freq_list = ['2S']
+freq_list = ['5S']
 
 """ ALTERNATIVE IMPLEMENTATION
     --------------------------
@@ -562,7 +562,7 @@ print(nan_frame)
 
 section('Resampled data')
 
-print_output(output_=output_resampled_f, print_output_flag_=args.print_output, head_flag_=False)
+print_output(output_=output_resampled_f, print_output_flag_=args.print_output, head_flag_=True)
 
 
 # Display the final plots of the queried trades

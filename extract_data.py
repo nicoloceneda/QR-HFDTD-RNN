@@ -586,35 +586,47 @@ if args.graph_output:
 
 # Save the time series of prices
 
+if not os.path.isdir('data'):
+
+    os.mkdir('data')
+
 if args.debug:
 
-    if not os.path.isdir('mode bg'):
+    if not os.path.isdir('data/mode bg'):
 
-        os.mkdir('mode bg')
+        os.mkdir('data/mode bg')
+
+    if not os.path.isdir('data/mode bg/datasets'):
+
+        os.mkdir('data/mode bg/datasets')
 
     for symbol in symbol_list:
 
-        if not os.path.isdir('mode bg/' + symbol):
+        if not os.path.isdir('data/mode bg/datasets/' + symbol):
 
-            os.mkdir('mode bg/' + symbol)
+            os.mkdir('data/mode bg/datasets/' + symbol)
 
         data = pd.DataFrame(output_resampled_f[output_resampled_f['sym_root'] == symbol][['date', 'time_m', 'price']])
-        data.to_csv('mode bg/' + symbol + '/data.csv', index=False)
+        data.to_csv('data/mode bg/datasets/' + symbol + '/data.csv', index=False)
 
 else:
 
-    if not os.path.isdir('mode sl'):
+    if not os.path.isdir('data/mode sl'):
 
-        os.mkdir('mode sl')
+        os.mkdir('data/mode sl')
+
+    if not os.path.isdir('data/mode sl/datasets'):
+
+        os.mkdir('data/mode sl/datasets')
 
     for symbol in symbol_list:
 
-        if not os.path.isdir('mode sl/' + symbol):
+        if not os.path.isdir('data/mode sl/datasets/' + symbol):
 
-            os.mkdir('mode sl/' + symbol)
+            os.mkdir('data/mode sl/datasets/' + symbol)
 
         data = pd.DataFrame(output_resampled_f[output_resampled_f['sym_root'] == symbol][['date', 'time_m', 'price']])
-        data.to_csv('mode sl/' + symbol + '/data.csv', index=False)
+        data.to_csv('data/mode sl/datasets/' + symbol + '/data.csv', index=False)
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------

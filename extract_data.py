@@ -637,12 +637,3 @@ plt.show()
 end = time.time()
 
 print('\nExecution time: ', end - start)
-
-
-# ------------------------------------------------------------------------------------------------------------------------------------------
-# TO DO LIST
-# ------------------------------------------------------------------------------------------------------------------------------------------
-
-
-# TODO: remove from the current directory the following files, which have been copied from the directory 'official paper code'
-#       LSTM-HTQF.bat; LSTM-HTQF.py; makeData.bat; makeData.py; rawData (folder); readMe.txt.

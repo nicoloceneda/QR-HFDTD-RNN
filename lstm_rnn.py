@@ -3,6 +3,10 @@
     This script executes a long short term memory recurrent neural network to estimate the parameters of a parametric heavy tailed quantile
     function.
 
+    Parameters to change:
+    - symbol
+    - elle
+
     Contact: nicolo.ceneda@student.unisg.ch
     Last update: 18 May 2020
 """
@@ -20,9 +24,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import scipy.stats
-import arch
 import tensorflow as tf
-import pyprind
 
 
 # Set the seed
@@ -37,20 +39,22 @@ tf.random.set_seed(1)
 
 # Import the train, validation and test sets
 
-symbol = 'AAPL'
+symbol = 'INTC'
+elle = 200
 
-X_train = pd.read_csv('datasets/mode sl/datasets std/' + symbol + '/X_train.csv')
-X_valid = pd.read_csv('datasets/mode sl/datasets std/' + symbol + '/X_valid.csv')
-X_test = pd.read_csv('datasets/mode sl/datasets std/' + symbol + '/X_test.csv')
+symbol_elle = symbol + '_' + str(elle)
 
-Y_train = pd.read_csv('datasets/mode sl/datasets std/' + symbol + '/Y_train.csv')
-Y_valid = pd.read_csv('datasets/mode sl/datasets std/' + symbol + '/Y_valid.csv')
-Y_test = pd.read_csv('datasets/mode sl/datasets std/' + symbol + '/Y_test.csv')
+X_train = pd.read_csv('data/mode sl/datasets std/' + symbol_elle + '/X_train.csv')
+X_valid = pd.read_csv('data/mode sl/datasets std/' + symbol_elle + '/X_valid.csv')
+X_test = pd.read_csv('data/mode sl/datasets std/' + symbol_elle + '/X_test.csv')
+
+Y_train = pd.read_csv('data/mode sl/datasets std/' + symbol_elle + '/Y_train.csv')
+Y_valid = pd.read_csv('data/mode sl/datasets std/' + symbol_elle + '/Y_valid.csv')
+Y_test = pd.read_csv('data/mode sl/datasets std/' + symbol_elle + '/Y_test.csv')
 
 
 # Reshape the train, validation and test subsets
 
-elle = 200
 n_features = 4
 
 X_train = X_train.values.reshape(-1, elle, n_features)
@@ -140,8 +144,6 @@ print('\nDENSE layer'
 
 tau = tf.constant(np.concatenate(([0.01], np.divide(range(1, 20), 20), [0.99])).reshape(1, -1), dtype=tf.float32)
 z_tau = tf.constant(scipy.stats.norm.ppf(tau, loc=0.0, scale=1.0), dtype=tf.float32)
-tau_new = tf.constant(np.array([0.01, 0.05, 0.1]).reshape(1, -1), dtype=tf.float32)
-z_tau_new = tf.constant(scipy.stats.norm.ppf(tau_new, loc=0.0, scale=1.0), dtype=tf.float32)
 
 
 # Define the loss function that produces a scalar for each batch (Equation 60)
@@ -196,6 +198,14 @@ history = lstm_model.fit(ds_train, epochs=n_epochs, validation_data=ds_valid)
 
 # Visualize the learning curve
 
+if not os.path.isdir('data/mode sl/results/'):
+
+    os.mkdir('data/mode sl/results/')
+
+if not os.path.isdir('data/mode sl/results/' + symbol):
+
+    os.mkdir('data/mode sl/results/' + symbol)
+
 hist = history.history
 
 plt.figure()
@@ -204,7 +214,7 @@ plt.xlabel('Epoch')
 plt.title('Training loss')
 plt.tick_params(axis='both', which='major')
 plt.tight_layout()
-plt.savefig('images_lstm_rnn/train_loss.png')
+plt.savefig('data/mode sl/results/' + symbol + '/train_loss_1.png')
 
 plt.figure()
 plt.plot(hist['val_loss'], 'r')
@@ -212,7 +222,7 @@ plt.xlabel('Epoch')
 plt.title('Validation loss')
 plt.tick_params(axis='both', which='major')
 plt.tight_layout()
-plt.savefig('images_lstm_rnn/valid_loss.png')
+plt.savefig('data/mode sl/results/' + symbol + '/valid_loss_1.png')
 
 
 # -------------------------------------------------------------------------------
@@ -220,46 +230,53 @@ plt.savefig('images_lstm_rnn/valid_loss.png')
 # -------------------------------------------------------------------------------
 
 
-# Predict the parameters and the quantiles
+# Predict the parameters and the quantiles for the train and test subsets
 
 params_record_train = lstm_model.predict(X_train)
-params_record_train = pd.DataFrame(params_record_train, columns=['mu', 'sigma', 'u_coeff', 'd_coeff'])  # (NB X 4) # TODO: BS vs number  of batches
+params_record_train_df = pd.DataFrame(params_record_train, columns=['mu', 'sigma', 'u_coeff', 'd_coeff'])
 q_record_train = q_calculator(params_record_train)
-q_record_train = pd.DataFrame(q_record_train.numpy(), columns=tau.numpy().tolist()[0])                  # (NB x n_z_tau)
+q_record_train_df = pd.DataFrame(q_record_train.numpy(), columns=tau.numpy().tolist()[0])
 
-params_record_test = lstm_model.predict(X_test)                                                         # (BS X 4)
-params_record_test = pd.DataFrame(params_record_test, columns=['mu', 'sigma', 'u_coeff', 'd_coeff'])
-q_record_test = q_calculator(params_record_test)                                                        # (BS x n_z_tau)
-q_record_test = pd.DataFrame(q_record_test.numpy(), columns=tau.numpy().tolist()[0])
+params_record_test = lstm_model.predict(X_test)
+params_record_test_df = pd.DataFrame(params_record_test, columns=['mu', 'sigma', 'u_coeff', 'd_coeff'])
+q_record_test = q_calculator(params_record_test)
+q_record_test_df = pd.DataFrame(q_record_test.numpy(), columns=tau.numpy().tolist()[0])
 
 
 # Save the predictions
 
-results_folder = 'datasets/mode sl/results/' + symbol
+params_record_train_df.to_csv('data/mode sl/results/' + symbol + '/params_record_train.csv', index=False)
+q_record_train_df.to_csv('data/mode sl/results/' + symbol + '/q_record_train.csv', index=False)
 
-if not os.path.isdir(results_folder):
-
-    os.mkdir(results_folder)
-
-params_record_train.to_csv(results_folder + '/params_record_train.csv', index=False)
-q_record_train.to_csv(results_folder + '/q_record_train.csv', index=False)
-
-params_record_test.to_csv(results_folder + '/params_record_test.csv', index=False)
-q_record_test.to_csv(results_folder + '/q_record_test.csv', index=False)
+params_record_test_df.to_csv('data/mode sl/results/' + symbol + '/params_record_test.csv', index=False)
+q_record_test_df.to_csv('data/mode sl/results/' + symbol + '/q_record_test.csv', index=False)
 
 
-# -------------------------------------------------------------------------------
-# 5. BENCHMARK MODELS
-# -------------------------------------------------------------------------------
+# Compute the test results
 
+loss_test_tau = pinball_loss_function(Y_test, params_record_test)
 
-garch_p = 3
-garch_q = 3
+tau = tf.constant(np.array([0.01, 0.05, 0.1]).reshape(1, -1), dtype=tf.float32)
+z_tau = tf.constant(scipy.stats.norm.ppf(tau, loc=0.0, scale=1.0), dtype=tf.float32)
 
-model = arch.arch_model(Y, mean='Zero', vol='GARCH', dist='normal', p=3, q=3)
-model_fit = model.fit()
-yhat = model_fit.forecast(horizon=100)
-plt.plot(yhat.variance.values[-1, :])
+loss_test_new_tau = pinball_loss_function(Y_test, params_record_test)
+
+with open('data/mode sl/results/' + symbol + '/results_1.txt', 'w') as file:
+
+    file.write('LSTM RNN - Symbol: {}'.format(symbol))
+    file.write('\n- Sequence length: {}'.format(elle))
+    file.write('\n- Batch size: {}'.format(batch_size))
+    file.write('\n- Hidden dimension: {}'.format(hidden_dim))
+    file.write('\n- Number of epochs: {}'.format(n_epochs))
+    file.write('\n- Number of steps per epochs: {}'.format(n_steps_per_epoch))
+    file.write('\n- Number of steps per validation: {}'.format(n_validation_steps))
+    file.write('\n* Test loss (tau): {}'.format(loss_test_tau))
+    file.write('\n* Test loss (new tau): {}'.format(loss_test_new_tau))
+    file.write('\n')
+    file.write('\nTrain loss: \n{}'.format(hist['loss']))
+    file.write('\n')
+    file.write('\nValid loss: \n{}'.format(hist['val_loss']))
+
 
 # -------------------------------------------------------------------------------
 # 5. GENERAL

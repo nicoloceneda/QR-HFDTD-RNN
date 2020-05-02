@@ -31,7 +31,7 @@ import pandas as pd
 
 # Import the extracted datasets
 
-symbol = sys.argv[1]
+symbol = 'NFLX'  # TODO: change back to sys.argv[1]
 data_extracted = pd.read_csv('data/mode sl/datasets/' + symbol + '/data.csv')
 
 
@@ -40,7 +40,7 @@ data_extracted = pd.read_csv('data/mode sl/datasets/' + symbol + '/data.csv')
 log_return = np.diff(np.log(data_extracted['price']))
 data = pd.DataFrame({'log_return': log_return})
 
-elle = int(sys.argv[2])
+elle = 200  # TODO: change back to int(sys.argv[2])
 data['log_return_ma'] = data['log_return'].rolling(window=elle).mean()
 
 X = []

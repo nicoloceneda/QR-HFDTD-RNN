@@ -6,11 +6,13 @@
 
 % Import the train, validation and test sets
 
-symbol = 'AAPL';
+symbol = 'FB';
+elle = 200;
+symbol_elle = strcat(symbol, "_", string(elle));
 
-Y_train = table2array(readtable("NASDAQ100/data_100/Y_train.csv"));
-Y_valid = table2array(readtable("NASDAQ100/data_100/Y_validate.csv"));
-Y_test = table2array(readtable("NASDAQ100/data_100/Y_test.csv"));
+Y_train = table2array(readtable(strcat("data/mode sl/datasets std/", symbol_elle, "/Y_train.csv")));
+Y_valid = table2array(readtable(strcat("data/mode sl/datasets std/", symbol_elle, "/Y_valid.csv")));
+Y_test = table2array(readtable(strcat("data/mode sl/datasets std/", symbol_elle, "/Y_test.csv")));
 
 
 % -------------------------------------------------------------------------------
@@ -50,6 +52,15 @@ for p = 1:4
 end
 
 
+fileID = fopen(strcat('data/mode sl/results/', symbol, '/bench_egarch.txt'),'w');
+fprintf(fileID, ['BENCHMARK - Symbol :', symbol]);
+fprintf(fileID, ['\n- Sequence length: %3f', elle]);
+
+fprintf(fileID, '\nEGARCH-N:');
+fprintf(fileID, '\n- p: %3.1f', best_p);
+fprintf(fileID, '\n- q: %3.1f', best_q);
+
+
 % Calculate the volatility for the test set
 
 model_egarch = egarch('GARCHLags', best_p, 'ARCHLags', best_q, 'Distribution', 'Gaussian');
@@ -68,6 +79,8 @@ loss = pinball_loss_function(Y_test, Q, tau);
 disp("EGARCH-N: Test set params and loss for tau:");
 disp([best_p, best_q, loss]);
 
+fprintf(fileID,' \n* Test loss (tau): %17.15f', loss);
+
 
 % Calculate the loss for the new tau set
 
@@ -77,6 +90,8 @@ loss = pinball_loss_function(Y_test, Q, tau);
 
 disp("EGARCH-N: Test set params and loss for new tau:");
 disp([best_p, best_q, loss]);
+
+fprintf(fileID,' \n* Test loss (new tau): %17.15f', loss);
 
 
 % -------------------------------------------------------------------------------
@@ -117,6 +132,11 @@ for p = 1:4
 end
 
 
+fprintf(fileID, '\nEGARCH-t:');
+fprintf(fileID, '\n- p: %3.1f', best_p);
+fprintf(fileID, '\n- q: %3.1f', best_q);
+
+
 % Calculate the volatility for the test set
 
 model_egarch = egarch('GARCHLags', best_p, 'ARCHLags', best_q, 'Distribution', 't');
@@ -136,6 +156,7 @@ loss = pinball_loss_function(Y_test, Q, tau);
 disp("EGARCH-t: Test set params and loss for tau:");
 disp([best_p, best_q, loss]);
 
+fprintf(fileID,' \n* Test loss (tau): %17.15f', loss);
 
 % Calculate the loss for the new tau set
 
@@ -145,6 +166,8 @@ loss = pinball_loss_function(Y_test, Q, tau);
 
 disp("EGARCH-t: Test set params and loss for new tau:");
 disp([best_p, best_q, loss]);
+
+fprintf(fileID,' \n* Test loss (new tau): %17.15f', loss);
 
 
 % -------------------------------------------------------------------------------
@@ -191,6 +214,12 @@ for p = 1:4
 end
 
 
+fprintf(fileID, '\nAR-EGARCH-t:');
+fprintf(fileID, '\n- p: %3.1f', best_p);
+fprintf(fileID, '\n- q: %3.1f', best_q);
+fprintf(fileID, '\n- r: %3.1f', best_r);
+
+
 % Calculate the volatility for the test set
 
 model_egarch = arima('ARLags', best_r, 'Variance', egarch('GARCHLags', best_p, 'ARCHLags', best_q, 'Distribution', 't'));
@@ -211,6 +240,8 @@ loss = pinball_loss_function(Y_test, Q, tau);
 disp("EGARCH-t + AR: Test set params and loss for tau:");
 disp([best_p, best_q, best_r, loss]);
 
+fprintf(fileID,' \n* Test loss (tau): %17.15f', loss);
+
 
 % Calculate the loss for the new tau set
 
@@ -220,6 +251,9 @@ loss = pinball_loss_function(Y_test, Q, tau);
 
 disp("EGARCH-t + AR: Test set params and loss for new tau:");
 disp([best_p, best_q, best_r, loss]);
+
+fprintf(fileID,' \n* Test loss (new tau): %17.15f', loss);
+fclose(fileID);
 
 
 % -------------------------------------------------------------------------------

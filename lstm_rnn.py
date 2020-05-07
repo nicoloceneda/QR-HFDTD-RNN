@@ -27,255 +27,257 @@ import scipy.stats
 import tensorflow as tf
 
 
-# Set the seed
+# Set the parameters
 
-tf.random.set_seed(1)
+symbol_list = ['AMD', 'AMZN', 'CSCO']
+run_list = [1, 2, 5, 6]
+batch_size_list = [100, 4421, 100, 4421]
+hidden_dim_list = [16, 16, 32, 32]
+n_epochs_list = [10, 10, 10, 10]
 
 
-# -------------------------------------------------------------------------------
-# 1. PREPARE THE DATA
-# -------------------------------------------------------------------------------
+# Iterate over each symbol
 
+for symbol in symbol_list:
 
-# Import the train, validation and test sets
+    for i in range(4):
 
-symbol = 'INTC'
-elle = 200
+        # Set the seed
 
-symbol_elle = symbol + '_' + str(elle)
+        tf.random.set_seed(1)
 
-X_train = pd.read_csv('data/mode sl/datasets std/' + symbol_elle + '/X_train.csv')
-X_valid = pd.read_csv('data/mode sl/datasets std/' + symbol_elle + '/X_valid.csv')
-X_test = pd.read_csv('data/mode sl/datasets std/' + symbol_elle + '/X_test.csv')
+        # Set the run
 
-Y_train = pd.read_csv('data/mode sl/datasets std/' + symbol_elle + '/Y_train.csv')
-Y_valid = pd.read_csv('data/mode sl/datasets std/' + symbol_elle + '/Y_valid.csv')
-Y_test = pd.read_csv('data/mode sl/datasets std/' + symbol_elle + '/Y_test.csv')
+        run = run_list[i]
 
+        # -------------------------------------------------------------------------------
+        # 1. PREPARE THE DATA
+        # -------------------------------------------------------------------------------
 
-# Reshape the train, validation and test subsets
+        # Import the train, validation and test sets
 
-n_features = 4
+        elle = 200
 
-X_train = X_train.values.reshape(-1, elle, n_features)
-X_valid = X_valid.values.reshape(-1, elle, n_features)
-X_test = X_test.values.reshape(-1, elle, n_features)
+        symbol_elle = symbol + '_' + str(elle)
 
-Y_train = Y_train.values
-Y_valid = Y_valid.values
-Y_test = Y_test.values
+        X_train = pd.read_csv('data/mode sl/datasets std noj/' + symbol_elle + '/X_train.csv')
+        X_valid = pd.read_csv('data/mode sl/datasets std noj/' + symbol_elle + '/X_valid.csv')
+        X_test = pd.read_csv('data/mode sl/datasets std noj/' + symbol_elle + '/X_test.csv')
 
+        Y_train = pd.read_csv('data/mode sl/datasets std noj/' + symbol_elle + '/Y_train.csv')
+        Y_valid = pd.read_csv('data/mode sl/datasets std noj/' + symbol_elle + '/Y_valid.csv')
+        Y_test = pd.read_csv('data/mode sl/datasets std noj/' + symbol_elle + '/Y_test.csv')
 
-# Create train, validation and test tensorflow datasets
+        # Reshape the train, validation and test subsets
 
-batch_size = 100
-""" PARAMS: 500, 1000 """
+        n_features = 4
 
-buffer_size = Y_train.shape[0]
-""" PARAMS: 10000 """
+        X_train = X_train.values.reshape(-1, elle, n_features)
+        X_valid = X_valid.values.reshape(-1, elle, n_features)
+        X_test = X_test.values.reshape(-1, elle, n_features)
 
-ds_train = tf.data.Dataset.from_tensor_slices((X_train, Y_train))
-ds_train = ds_train.shuffle(buffer_size).batch(batch_size, drop_remainder=True)
-""" ALTERNATIVE: ds_train = ds_train.shuffle(10000).batch(batch_size).repeat() """
+        Y_train = Y_train.values
+        Y_valid = Y_valid.values
+        Y_test = Y_test.values
 
-ds_valid = tf.data.Dataset.from_tensor_slices((X_valid, Y_valid))
-ds_valid = ds_valid.batch(batch_size, drop_remainder=True)
-""" ALTERNATIVE: ds_valid = ds_valid.batch(batch_size).repeat() """
+        # Create train, validation and test tensorflow datasets
 
-ds_test = tf.data.Dataset.from_tensor_slices((X_test, Y_test))
-ds_test = ds_test.batch(batch_size, drop_remainder=True)
-""" ALTERNATIVE: ds_test = ds_test.batch(batch_size).repeat() """
+        batch_size = batch_size_list[i]
+        """ PARAMS: 500, 1000 """
 
-for batch in ds_train.take(1):
+        buffer_size = Y_train.shape[0]
+        """ PARAMS: 10000 """
 
-    array_features = batch[0]
-    array_targets = batch[1]
+        ds_train = tf.data.Dataset.from_tensor_slices((X_train, Y_train))
+        ds_train = ds_train.shuffle(buffer_size).batch(batch_size, drop_remainder=True)
+        """ ALTERNATIVE: ds_train = ds_train.shuffle(10000).batch(batch_size).repeat() """
 
-    print('The dataset is made up of several batches, each containing:'
-          '\n- An array of time series of features: shape=', array_features.shape,
-          '\n- An array of targets: shape=', array_targets.shape,
-          '\n'
-          '\nBatch 0'
-          '\n-------',
-          '\nTuple 0\n',
-          array_features.numpy()[0], array_targets.numpy()[0],
-          '\nTuple 999\n',
-          array_features.numpy()[99], array_targets.numpy()[99])
+        ds_valid = tf.data.Dataset.from_tensor_slices((X_valid, Y_valid))
+        ds_valid = ds_valid.batch(batch_size, drop_remainder=True)
+        """ ALTERNATIVE: ds_valid = ds_valid.batch(batch_size).repeat() """
 
+        ds_test = tf.data.Dataset.from_tensor_slices((X_test, Y_test))
+        ds_test = ds_test.batch(batch_size, drop_remainder=True)
+        """ ALTERNATIVE: ds_test = ds_test.batch(batch_size).repeat() """
 
-# -------------------------------------------------------------------------------
-# 2. DESIGN THE MODEL
-# -------------------------------------------------------------------------------
+        # for batch in ds_train.take(1):
 
+        #     array_features = batch[0]
+        #     array_targets = batch[1]
 
-# Create the model
+        #     print('The dataset is made up of several batches, each containing:'
+        #           '\n- An array of time series of features: shape=', array_features.shape,
+        #           '\n- An array of targets: shape=', array_targets.shape,
+        #           '\n'
+        #           '\nBatch 0'
+        #           '\n-------',
+        #           '\nTuple 0\n',
+        #           array_features.numpy()[0], array_targets.numpy()[0],
+        #           '\nTuple 999\n',
+        #           array_features.numpy()[99], array_targets.numpy()[99])
 
-A = 4
-hidden_dim = 16
-output_dim = 4
+        # -------------------------------------------------------------------------------
+        # 2. DESIGN THE MODEL
+        # -------------------------------------------------------------------------------
 
-lstm_model = tf.keras.models.Sequential()
-lstm_model.add(tf.keras.layers.LSTM(units=hidden_dim, return_sequences=False, input_shape=X_train.shape[-2:]))
-lstm_model.add(tf.keras.layers.Dense(units=output_dim, activation='tanh'))
-lstm_model.add(tf.keras.layers.Lambda(lambda x: x + np.array([0, 1, 1, 1])))
+        # Create the model
 
+        A = 4
+        hidden_dim = hidden_dim_list[i]
+        output_dim = 4
 
-# Print the model summary
+        lstm_model = tf.keras.models.Sequential()
+        lstm_model.add(tf.keras.layers.LSTM(units=hidden_dim, return_sequences=False, input_shape=X_train.shape[-2:]))
+        lstm_model.add(tf.keras.layers.Dense(units=output_dim, activation='tanh'))
+        lstm_model.add(tf.keras.layers.Lambda(lambda x: x + np.array([0, 1, 1, 1])))
 
-lstm_model.summary()
+        # Print the model summary
 
-print('\nLSTM layer'
-      '\n----------'
-      '\nWeight kernel:            4(FE x HU)          = (FE x 4HU) =', lstm_model.weights[0].shape,
-      '\nWeight recurrent kernel:  4(HU x HU)          = (HU x 4HU) =', lstm_model.weights[1].shape,
-      '\nWeight bias:              4(BS x HU) = 4(HU,) = (4HU,)     =', lstm_model.weights[2].shape,
-      '\n                                                             -------'
-      '\nTotal                                                          1344')
+        lstm_model.summary()
 
-print('\nDENSE layer'
-      '\n-----------'
-      '\nWeight kernel:                                              ', lstm_model.weights[3].shape,
-      '\nWeight :                                                    ', lstm_model.weights[4].shape,
-      '\n                                                             -------',
-      '\nTotal                                                           68')
+        print('\nLSTM layer'
+              '\n----------'
+              '\nWeight kernel:            4(FE x HU)          = (FE x 4HU) =', lstm_model.weights[0].shape,
+              '\nWeight recurrent kernel:  4(HU x HU)          = (HU x 4HU) =', lstm_model.weights[1].shape,
+              '\nWeight bias:              4(BS x HU) = 4(HU,) = (4HU,)     =', lstm_model.weights[2].shape,
+              '\n                                                             -------'
+              '\nTotal                                                          1344')
 
+        print('\nDENSE layer'
+              '\n-----------'
+              '\nWeight kernel:                                              ', lstm_model.weights[3].shape,
+              '\nWeight :                                                    ', lstm_model.weights[4].shape,
+              '\n                                                             -------',
+              '\nTotal                                                           68')
 
-# Create additional variables
+        # Create additional variables
 
-tau = tf.constant(np.concatenate(([0.01], np.divide(range(1, 20), 20), [0.99])).reshape(1, -1), dtype=tf.float32)
-z_tau = tf.constant(scipy.stats.norm.ppf(tau, loc=0.0, scale=1.0), dtype=tf.float32)
+        tau = tf.constant(np.concatenate(([0.01], np.divide(range(1, 20), 20), [0.99])).reshape(1, -1), dtype=tf.float32)
+        z_tau = tf.constant(scipy.stats.norm.ppf(tau, loc=0.0, scale=1.0), dtype=tf.float32)
 
+        # Define the loss function that produces a scalar for each batch (Equation 60)
 
-# Define the loss function that produces a scalar for each batch (Equation 60)
+        def q_calculator(Y_predicted):                                         # (BS x 4)
 
-def q_calculator(Y_predicted):                                         # (BS x 4)
+            mu = tf.reshape(Y_predicted[:, 0], [-1, 1])                        # (BS x 1)
+            sig = tf.reshape(Y_predicted[:, 1], [-1, 1])                       # (BS x 1)
+            u_coeff = tf.reshape(Y_predicted[:, 2], [-1, 1])                   # (BS x 1)
+            d_coeff = tf.reshape(Y_predicted[:, 3], [-1, 1])                   # (BS x 1)
+            u_factor = tf.exp(tf.matmul(u_coeff, z_tau)) / A + 1               # (BS x 1)(1 x n_z_tau) = (BS x n_z_tau)
+            d_factor = tf.exp(-tf.matmul(d_coeff, z_tau)) / A + 1              # (BS x 1)(1 x n_z_tau) = (BS x n_z_tau)
+            prod_factor = tf.multiply(u_factor, d_factor)                      # (BS x n_z_tau)*(BS x n_z_tau) = (BS x n_z_tau)
+            q = tf.add(mu, tf.multiply(sig, tf.multiply(z_tau, prod_factor)))  # (BS x 1)+(BS x 1)*(1 x n_z_tau)*(BS x n_z_tau) = (BS x n_z_tau)
 
-    mu = tf.reshape(Y_predicted[:, 0], [-1, 1])                        # (BS x 1)
-    sig = tf.reshape(Y_predicted[:, 1], [-1, 1])                       # (BS x 1)
-    u_coeff = tf.reshape(Y_predicted[:, 2], [-1, 1])                   # (BS x 1)
-    d_coeff = tf.reshape(Y_predicted[:, 3], [-1, 1])                   # (BS x 1)
-    u_factor = tf.exp(tf.matmul(u_coeff, z_tau)) / A + 1               # (BS x 1)(1 x n_z_tau) = (BS x n_z_tau)
-    d_factor = tf.exp(-tf.matmul(d_coeff, z_tau)) / A + 1              # (BS x 1)(1 x n_z_tau) = (BS x n_z_tau)
-    prod_factor = tf.multiply(u_factor, d_factor)                      # (BS x n_z_tau)*(BS x n_z_tau) = (BS x n_z_tau)
-    q = tf.add(mu, tf.multiply(sig, tf.multiply(z_tau, prod_factor)))  # (BS x 1)+(BS x 1)*(1 x n_z_tau)*(BS x n_z_tau) = (BS x n_z_tau)
+            return q
 
-    return q
 
+        def pinball_loss_function(Y_actual, Y_predicted):
 
-def pinball_loss_function(Y_actual, Y_predicted):
+            q = q_calculator(Y_predicted)                                      # (BS x n_z_tau)
+            error = tf.subtract(tf.cast(Y_actual, dtype=tf.float32), q)        # (BS x 1)-(BS x n_z_tau) = (BS x n_z_tau)
+            error_1 = tf.multiply(tau, error)                                  # (1 x n_tau)*(BS x n_z_tau) = (BS x n_z_tau)
+            error_2 = tf.multiply(tau - 1, error)                              # (1 x n_tau)*(BS x n_z_tau) = (BS x n_z_tau)
+            loss = tf.reduce_mean(tf.maximum(error_1, error_2))                # (BS x n_z_tau) -> (1,)
 
-    q = q_calculator(Y_predicted)                                      # (BS x n_z_tau)
-    error = tf.subtract(tf.cast(Y_actual, dtype=tf.float32), q)        # (BS x 1)-(BS x n_z_tau) = (BS x n_z_tau)
-    error_1 = tf.multiply(tau, error)                                  # (1 x n_tau)*(BS x n_z_tau) = (BS x n_z_tau)
-    error_2 = tf.multiply(tau - 1, error)                              # (1 x n_tau)*(BS x n_z_tau) = (BS x n_z_tau)
-    loss = tf.reduce_mean(tf.maximum(error_1, error_2))                # (BS x n_z_tau) -> (1,)
+            return loss
 
-    return loss
 
+        # Compile the model
 
-# Compile the model
+        lstm_model.compile(optimizer=tf.keras.optimizers.Adam(), loss=pinball_loss_function)
 
-lstm_model.compile(optimizer=tf.keras.optimizers.Adam(), loss=pinball_loss_function)
+        # -------------------------------------------------------------------------------
+        # 3. TRAIN THE MODEL
+        # -------------------------------------------------------------------------------
 
+        # Train the lstm recurrent neural network
 
-# -------------------------------------------------------------------------------
-# 3. TRAIN THE MODEL
-# -------------------------------------------------------------------------------
+        n_epochs = n_epochs_list[i]
+        n_steps_per_epoch = 600
+        n_validation_steps = 100
 
+        history = lstm_model.fit(ds_train, epochs=n_epochs, validation_data=ds_valid)
+        """ ALTERNATIVE: 
+           history = lstm_model.fit(ds_train, epochs=n_epochs, steps_per_epoch=n_steps_per_epoch,
+                                                  validation_data=ds_valid, validation_steps=n_validation_steps) 
+        """
 
-# Train the lstm recurrent neural network
+        # Visualize the learning curve
 
-n_epochs = 10
-n_steps_per_epoch = 600
-n_validation_steps = 100
+        if not os.path.isdir('data/mode sl/results noj/'):
 
-history = lstm_model.fit(ds_train, epochs=n_epochs, validation_data=ds_valid)
-""" ALTERNATIVE: 
-   history = lstm_model.fit(ds_train, epochs=n_epochs, steps_per_epoch=n_steps_per_epoch,
-                                          validation_data=ds_valid, validation_steps=n_validation_steps) 
-"""
+            os.mkdir('data/mode sl/results noj/')
 
+        if not os.path.isdir('data/mode sl/results noj/' + symbol):
 
-# Visualize the learning curve
+            os.mkdir('data/mode sl/results noj/' + symbol)
 
-if not os.path.isdir('data/mode sl/results/'):
+        hist = history.history
 
-    os.mkdir('data/mode sl/results/')
+        plt.figure()
+        plt.plot(hist['loss'], 'b')
+        plt.xlabel('Epoch')
+        plt.title('Training loss')
+        plt.tick_params(axis='both', which='major')
+        plt.tight_layout()
+        plt.savefig('data/mode sl/results noj/' + symbol + '/train_loss_{}.png'.format(run))
 
-if not os.path.isdir('data/mode sl/results/' + symbol):
+        plt.figure()
+        plt.plot(hist['val_loss'], 'r')
+        plt.xlabel('Epoch')
+        plt.title('Validation loss')
+        plt.tick_params(axis='both', which='major')
+        plt.tight_layout()
+        plt.savefig('data/mode sl/results noj/' + symbol + '/valid_loss_{}.png'.format(run))
 
-    os.mkdir('data/mode sl/results/' + symbol)
+        # -------------------------------------------------------------------------------
+        # 4. MAKE PREDICTIONS
+        # -------------------------------------------------------------------------------
 
-hist = history.history
+        # Predict the parameters and the quantiles for the train and test subsets
 
-plt.figure()
-plt.plot(hist['loss'], 'b')
-plt.xlabel('Epoch')
-plt.title('Training loss')
-plt.tick_params(axis='both', which='major')
-plt.tight_layout()
-plt.savefig('data/mode sl/results/' + symbol + '/train_loss_1.png')
+        params_record_train = lstm_model.predict(X_train)
+        params_record_train_df = pd.DataFrame(params_record_train, columns=['mu', 'sigma', 'u_coeff', 'd_coeff'])
+        q_record_train = q_calculator(params_record_train)
+        q_record_train_df = pd.DataFrame(q_record_train.numpy(), columns=tau.numpy().tolist()[0])
 
-plt.figure()
-plt.plot(hist['val_loss'], 'r')
-plt.xlabel('Epoch')
-plt.title('Validation loss')
-plt.tick_params(axis='both', which='major')
-plt.tight_layout()
-plt.savefig('data/mode sl/results/' + symbol + '/valid_loss_1.png')
+        params_record_test = lstm_model.predict(X_test)
+        params_record_test_df = pd.DataFrame(params_record_test, columns=['mu', 'sigma', 'u_coeff', 'd_coeff'])
+        q_record_test = q_calculator(params_record_test)
+        q_record_test_df = pd.DataFrame(q_record_test.numpy(), columns=tau.numpy().tolist()[0])
 
+        # Save the predictions
 
-# -------------------------------------------------------------------------------
-# 4. MAKE PREDICTIONS
-# -------------------------------------------------------------------------------
+        # params_record_train_df.to_csv('data/mode sl/results noj/' + symbol + '/params_record_train.csv', index=False)
+        # q_record_train_df.to_csv('data/mode sl/results noj/' + symbol + '/q_record_train.csv', index=False)
 
+        # params_record_test_df.to_csv('data/mode sl/results noj/' + symbol + '/params_record_test.csv', index=False)
+        # q_record_test_df.to_csv('data/mode sl/results noj/' + symbol + '/q_record_test.csv', index=False)
 
-# Predict the parameters and the quantiles for the train and test subsets
+        # Compute the test results noj
 
-params_record_train = lstm_model.predict(X_train)
-params_record_train_df = pd.DataFrame(params_record_train, columns=['mu', 'sigma', 'u_coeff', 'd_coeff'])
-q_record_train = q_calculator(params_record_train)
-q_record_train_df = pd.DataFrame(q_record_train.numpy(), columns=tau.numpy().tolist()[0])
+        loss_test_tau = pinball_loss_function(Y_test, params_record_test)
 
-params_record_test = lstm_model.predict(X_test)
-params_record_test_df = pd.DataFrame(params_record_test, columns=['mu', 'sigma', 'u_coeff', 'd_coeff'])
-q_record_test = q_calculator(params_record_test)
-q_record_test_df = pd.DataFrame(q_record_test.numpy(), columns=tau.numpy().tolist()[0])
+        tau = tf.constant(np.array([0.01, 0.05, 0.1]).reshape(1, -1), dtype=tf.float32)
+        z_tau = tf.constant(scipy.stats.norm.ppf(tau, loc=0.0, scale=1.0), dtype=tf.float32)
 
+        loss_test_new_tau = pinball_loss_function(Y_test, params_record_test)
 
-# Save the predictions
+        with open('data/mode sl/results noj/' + symbol + '/results_{}.txt'.format(run), 'w') as file:
 
-params_record_train_df.to_csv('data/mode sl/results/' + symbol + '/params_record_train.csv', index=False)
-q_record_train_df.to_csv('data/mode sl/results/' + symbol + '/q_record_train.csv', index=False)
-
-params_record_test_df.to_csv('data/mode sl/results/' + symbol + '/params_record_test.csv', index=False)
-q_record_test_df.to_csv('data/mode sl/results/' + symbol + '/q_record_test.csv', index=False)
-
-
-# Compute the test results
-
-loss_test_tau = pinball_loss_function(Y_test, params_record_test)
-
-tau = tf.constant(np.array([0.01, 0.05, 0.1]).reshape(1, -1), dtype=tf.float32)
-z_tau = tf.constant(scipy.stats.norm.ppf(tau, loc=0.0, scale=1.0), dtype=tf.float32)
-
-loss_test_new_tau = pinball_loss_function(Y_test, params_record_test)
-
-with open('data/mode sl/results/' + symbol + '/results_1.txt', 'w') as file:
-
-    file.write('LSTM RNN - Symbol: {}'.format(symbol))
-    file.write('\n- Sequence length: {}'.format(elle))
-    file.write('\n- Batch size: {}'.format(batch_size))
-    file.write('\n- Hidden dimension: {}'.format(hidden_dim))
-    file.write('\n- Number of epochs: {}'.format(n_epochs))
-    file.write('\n- Number of steps per epochs: {}'.format(n_steps_per_epoch))
-    file.write('\n- Number of steps per validation: {}'.format(n_validation_steps))
-    file.write('\n* Test loss (tau): {}'.format(loss_test_tau))
-    file.write('\n* Test loss (new tau): {}'.format(loss_test_new_tau))
-    file.write('\n')
-    file.write('\nTrain loss: \n{}'.format(hist['loss']))
-    file.write('\n')
-    file.write('\nValid loss: \n{}'.format(hist['val_loss']))
+            file.write('LSTM RNN - Symbol: {}'.format(symbol))
+            file.write('\n- Sequence length: {}'.format(elle))
+            file.write('\n- Batch size: {}'.format(batch_size))
+            file.write('\n- Hidden dimension: {}'.format(hidden_dim))
+            file.write('\n- Number of epochs: {}'.format(n_epochs))
+            file.write('\n- Number of steps per epochs: {}'.format(n_steps_per_epoch))
+            file.write('\n- Number of steps per validation: {}'.format(n_validation_steps))
+            file.write('\n* Test loss (tau): {}'.format(loss_test_tau))
+            file.write('\n* Test loss (new tau): {}'.format(loss_test_new_tau))
+            file.write('\n')
+            file.write('\nTrain loss: \n{}'.format(hist['loss']))
+            file.write('\n')
+            file.write('\nValid loss: \n{}'.format(hist['val_loss']))
 
 
 # -------------------------------------------------------------------------------
@@ -283,6 +285,6 @@ with open('data/mode sl/results/' + symbol + '/results_1.txt', 'w') as file:
 # -------------------------------------------------------------------------------
 
 
-plt.show()
+# plt.show()
 
 

@@ -52,8 +52,8 @@ for symbol in symbol_list:
     elle = 200
     data['log_return_ma'] = data['log_return'].rolling(window=elle).mean()
 
-    X = []
     Y = []
+    X = []
 
     for pos in range(elle, data.shape[0]):
 
@@ -68,8 +68,8 @@ for symbol in symbol_list:
         data_past['log_return_d4'] = r_diff ** 4
         X.append(data_past[['log_return', 'log_return_d2', 'log_return_d3', 'log_return_d4']])
 
-    X = pd.concat(X, ignore_index=True)
     Y = pd.DataFrame(Y, columns=['label'])
+    X = pd.concat(X, ignore_index=True)
 
     # Define the training, validation and test subsets
 

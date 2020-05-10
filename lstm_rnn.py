@@ -29,9 +29,9 @@ import tensorflow as tf
 
 # Set the parameters
 
-symbol_list = ['AMD', 'AMZN', 'CSCO']
+symbol_list = ['AAPL', 'AMD', 'AMZN', 'CSCO', 'FB', 'INTC', 'JPM', 'MSFT', 'NVDA', 'TSLA']
 run_list = [1, 2, 5, 6]
-batch_size_list = [100, 4421, 100, 4421]
+batch_size_list = [100, 4422, 100, 4422]
 hidden_dim_list = [16, 16, 32, 32]
 n_epochs_list = [10, 10, 10, 10]
 
@@ -49,6 +49,7 @@ for symbol in symbol_list:
         # Set the run
 
         run = run_list[i]
+        print('Run {} for {}'.format(run, symbol))
 
         # -------------------------------------------------------------------------------
         # 1. PREPARE THE DATA
@@ -56,7 +57,7 @@ for symbol in symbol_list:
 
         # Import the train, validation and test sets
 
-        elle = 200
+        elle = 100
 
         symbol_elle = symbol + '_' + str(elle)
 
@@ -83,7 +84,7 @@ for symbol in symbol_list:
         # Create train, validation and test tensorflow datasets
 
         batch_size = batch_size_list[i]
-        """ PARAMS: 500, 1000 """
+        """ PARAMS: 100, int(Y_valid.shape[0] / 10) """
 
         buffer_size = Y_train.shape[0]
         """ PARAMS: 10000 """
@@ -208,9 +209,9 @@ for symbol in symbol_list:
 
             os.mkdir('data/mode sl/results noj/')
 
-        if not os.path.isdir('data/mode sl/results noj/' + symbol):
+        if not os.path.isdir('data/mode sl/results noj/' + symbol_elle):
 
-            os.mkdir('data/mode sl/results noj/' + symbol)
+            os.mkdir('data/mode sl/results noj/' + symbol_elle)
 
         hist = history.history
 
@@ -220,7 +221,7 @@ for symbol in symbol_list:
         plt.title('Training loss')
         plt.tick_params(axis='both', which='major')
         plt.tight_layout()
-        plt.savefig('data/mode sl/results noj/' + symbol + '/train_loss_{}.png'.format(run))
+        plt.savefig('data/mode sl/results noj/' + symbol_elle + '/train_loss_{}.png'.format(run))
 
         plt.figure()
         plt.plot(hist['val_loss'], 'r')
@@ -228,7 +229,7 @@ for symbol in symbol_list:
         plt.title('Validation loss')
         plt.tick_params(axis='both', which='major')
         plt.tight_layout()
-        plt.savefig('data/mode sl/results noj/' + symbol + '/valid_loss_{}.png'.format(run))
+        plt.savefig('data/mode sl/results noj/' + symbol_elle + '/valid_loss_{}.png'.format(run))
 
         # -------------------------------------------------------------------------------
         # 4. MAKE PREDICTIONS
@@ -263,7 +264,7 @@ for symbol in symbol_list:
 
         loss_test_new_tau = pinball_loss_function(Y_test, params_record_test)
 
-        with open('data/mode sl/results noj/' + symbol + '/results_{}.txt'.format(run), 'w') as file:
+        with open('data/mode sl/results noj/' + symbol_elle + '/results_{}.txt'.format(run), 'w') as file:
 
             file.write('LSTM RNN - Symbol: {}'.format(symbol))
             file.write('\n- Sequence length: {}'.format(elle))

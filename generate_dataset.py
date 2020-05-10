@@ -75,7 +75,7 @@ for symbol in symbol_list:
 
     train_split = int(Y.shape[0] * 0.8)
     valid_split = train_split + int(Y.shape[0] * 0.1)
-    test_split = train_split + int(Y.shape[0] * 0.1) + int(Y.shape[0] * 0.1)
+    test_split = valid_split + int(Y.shape[0] * 0.1)
 
     X_train = pd.DataFrame(X.iloc[:train_split * elle], copy=True)
     Y_train = pd.DataFrame(Y.iloc[:train_split], copy=True)

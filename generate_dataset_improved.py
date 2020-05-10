@@ -90,15 +90,18 @@ for symbol in symbol_list:
 
     train_split = int(Y.shape[0] * 0.8)
     valid_split = train_split + int(Y.shape[0] * 0.1)
-    test_split = train_split + int(Y.shape[0] * 0.1) + int(Y.shape[0] * 0.1)
+    test_split = valid_split + int(Y.shape[0] * 0.1)
 
     X_train = pd.DataFrame(X.iloc[:train_split * elle], copy=True)
+    X2_train = pd.DataFrame(X2.iloc[:train_split], copy=True)
     Y_train = pd.DataFrame(Y.iloc[:train_split], copy=True)
 
     X_valid = pd.DataFrame(X.iloc[train_split * elle: valid_split * elle], copy=True)
+    X2_valid = pd.DataFrame(X2.iloc[train_split: valid_split], copy=True)
     Y_valid = pd.DataFrame(Y.iloc[train_split: valid_split], copy=True)
 
     X_test = pd.DataFrame(X.iloc[valid_split * elle: test_split * elle], copy=True)
+    X2_test = pd.DataFrame(X2.iloc[valid_split: test_split], copy=True)
     Y_test = pd.DataFrame(Y.iloc[valid_split: test_split], copy=True)
 
     # Standardize the training, validation and test subsets
@@ -111,6 +114,13 @@ for symbol in symbol_list:
         X_valid[column] = (X_valid[column] - column_mean) / column_std
         X_test[column] = (X_test[column] - column_mean) / column_std
 
+    X2_mean = X2_train.mean()
+    X2_std = X2_train.std()
+
+    X2_train = (X2_train - X2_mean) / X2_std
+    X2_valid = (X2_valid - X2_mean) / X2_std
+    X2_test = (X2_test - X2_mean) / X2_std
+
     Y_mean = Y_train.mean()
     Y_std = Y_train.std()
 
@@ -120,19 +130,24 @@ for symbol in symbol_list:
 
     # Save the standardized returns
 
-    if not os.path.isdir('data/mode sl/datasets std noj'):
-        os.mkdir('data/mode sl/datasets std noj')
+    if not os.path.isdir('data/mode sl/datasets std noj improved'):
+
+        os.mkdir('data/mode sl/datasets std noj improved')
 
     symbol_elle = symbol + '_' + str(elle)
 
-    if not os.path.isdir('data/mode sl/datasets std noj/' + symbol_elle):
-        os.mkdir('data/mode sl/datasets std noj/' + symbol_elle)
+    if not os.path.isdir('data/mode sl/datasets std noj improved/' + symbol_elle):
 
-    X_train.to_csv('data/mode sl/datasets std noj/' + symbol_elle + '/X_train.csv', index=False)
-    Y_train.to_csv('data/mode sl/datasets std noj/' + symbol_elle + '/Y_train.csv', index=False)
+        os.mkdir('data/mode sl/datasets std noj improved/' + symbol_elle)
 
-    X_valid.to_csv('data/mode sl/datasets std noj/' + symbol_elle + '/X_valid.csv', index=False)
-    Y_valid.to_csv('data/mode sl/datasets std noj/' + symbol_elle + '/Y_valid.csv', index=False)
+    X_train.to_csv('data/mode sl/datasets std noj improved/' + symbol_elle + '/X_train.csv', index=False)
+    X2_train.to_csv('data/mode sl/datasets std noj improved/' + symbol_elle + '/X2_train.csv', index=False)
+    Y_train.to_csv('data/mode sl/datasets std noj improved/' + symbol_elle + '/Y_train.csv', index=False)
 
-    X_test.to_csv('data/mode sl/datasets std noj/' + symbol_elle + '/X_test.csv', index=False)
-    Y_test.to_csv('data/mode sl/datasets std noj/' + symbol_elle + '/Y_test.csv', index=False)
+    X_valid.to_csv('data/mode sl/datasets std noj improved/' + symbol_elle + '/X_valid.csv', index=False)
+    X2_valid.to_csv('data/mode sl/datasets std noj improved/' + symbol_elle + '/X2_valid.csv', index=False)
+    Y_valid.to_csv('data/mode sl/datasets std noj improved/' + symbol_elle + '/Y_valid.csv', index=False)
+
+    X_test.to_csv('data/mode sl/datasets std noj improved/' + symbol_elle + '/X_test.csv', index=False)
+    X2_test.to_csv('data/mode sl/datasets std noj improved/' + symbol_elle + '/X2_test.csv', index=False)
+    Y_test.to_csv('data/mode sl/datasets std noj improved/' + symbol_elle + '/Y_test.csv', index=False)

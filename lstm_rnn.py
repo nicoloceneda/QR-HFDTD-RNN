@@ -27,6 +27,11 @@ import scipy.stats
 import tensorflow as tf
 
 
+# -------------------------------------------------------------------------------
+# 1. MODEL
+# -------------------------------------------------------------------------------
+
+
 # Set the parameters
 
 symbol_list = ['AAPL', 'AMD', 'AMZN', 'CSCO', 'FB', 'INTC', 'JPM', 'MSFT', 'NVDA', 'TSLA']
@@ -52,7 +57,7 @@ for symbol in symbol_list:
         print('Run {} for {}'.format(run, symbol))
 
         # -------------------------------------------------------------------------------
-        # 1. PREPARE THE DATA
+        # 2. PREPARE THE DATA
         # -------------------------------------------------------------------------------
 
         # Import the train, validation and test sets
@@ -117,7 +122,7 @@ for symbol in symbol_list:
                   array_features.numpy()[-1], array_targets.numpy()[-1])
 
         # -------------------------------------------------------------------------------
-        # 2. DESIGN THE MODEL
+        # 3. DESIGN THE MODEL
         # -------------------------------------------------------------------------------
 
         # Create the model
@@ -187,7 +192,7 @@ for symbol in symbol_list:
         lstm_model.compile(optimizer=tf.keras.optimizers.Adam(), loss=pinball_loss_function)
 
         # -------------------------------------------------------------------------------
-        # 3. TRAIN THE MODEL
+        # 4. TRAIN THE MODEL
         # -------------------------------------------------------------------------------
 
         # Train the lstm recurrent neural network
@@ -231,7 +236,7 @@ for symbol in symbol_list:
         plt.savefig('data/mode sl/results noj/' + symbol_elle + '/valid_loss_{}.png'.format(run))
 
         # -------------------------------------------------------------------------------
-        # 4. MAKE PREDICTIONS
+        # 5. MAKE PREDICTIONS
         # -------------------------------------------------------------------------------
 
         # Predict the parameters and the quantiles for the train and test subsets
@@ -287,7 +292,7 @@ for symbol in symbol_list:
 
 
 # -------------------------------------------------------------------------------
-# 5. GENERAL
+# 6. GENERAL
 # -------------------------------------------------------------------------------
 
 

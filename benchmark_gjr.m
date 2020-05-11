@@ -1,7 +1,7 @@
 
 % Serialize over all symbols
-
-for symbol_element = {"AAPL", "AMD", "AMZN", "CSCO", "FB", "INTC", "JPM", "MSFT", "NVDA", "TSLA"}
+% {"AAPL", "AMD", "AMZN", "CSCO", "FB", "INTC", "JPM", "MSFT", "NVDA", "TSLA"}
+for symbol_element = {"AMZN", "FB", "TSLA"}
 
     symbol = symbol_element{1};
     
@@ -15,7 +15,7 @@ for symbol_element = {"AAPL", "AMD", "AMZN", "CSCO", "FB", "INTC", "JPM", "MSFT"
 
     % Import the train, validation and test sets
 
-    elle = 200;
+    elle = 100;
     symbol_elle = strcat(symbol, "_", string(elle));
 
     Y_train = table2array(readtable(strcat("data/mode sl/datasets std noj/", symbol_elle, "/Y_train.csv")));
@@ -38,7 +38,9 @@ for symbol_element = {"AAPL", "AMD", "AMZN", "CSCO", "FB", "INTC", "JPM", "MSFT"
         for q = 1:4
             
             model_gjr = gjr('GARCHLags', p, 'ARCHLags', q, 'Distribution', 'Gaussian');
-            estimated_gjr = estimate(model_gjr, Y_train, 'Display', 'off');
+            opts = optimset('fmincon');
+            opts.Algorithm = 'interior-point';
+            estimated_gjr = estimate(model_gjr, Y_train, 'Display', 'off', 'options', opts);
             cond_variance_gjr = infer(estimated_gjr, [Y_train; Y_valid]);
             valid_variance_gjr = cond_variance_gjr(length(Y_train) + 1: length(Y_train) + length(Y_valid));
             valid_sigma_gjr = sqrt(valid_variance_gjr);                  
@@ -60,7 +62,7 @@ for symbol_element = {"AAPL", "AMD", "AMZN", "CSCO", "FB", "INTC", "JPM", "MSFT"
     end
 
 
-    fileID = fopen(strcat('data/mode sl/results noj/', symbol, '/bench_gjr.txt'),'w');
+    fileID = fopen(strcat('data/mode sl/results noj/', symbol_elle, '/bench_gjr.txt'),'w');
     fprintf(fileID, 'BENCHMARK - Symbol : %s', symbol);
     fprintf(fileID, '\n- Sequence length: %3.0f', elle);
 
@@ -117,7 +119,9 @@ for symbol_element = {"AAPL", "AMD", "AMZN", "CSCO", "FB", "INTC", "JPM", "MSFT"
         for q = 1:4
             
             model_gjr = gjr('GARCHLags', p, 'ARCHLags', q, 'Distribution', 't');
-            estimated_gjr = estimate(model_gjr, Y_train, 'Display', 'off');
+            opts = optimset('fmincon');
+            opts.Algorithm = 'interior-point';
+            estimated_gjr = estimate(model_gjr, Y_train, 'Display', 'off', 'options', opts);
             cond_variance_gjr = infer(estimated_gjr, [Y_train; Y_valid]);
             valid_variance_gjr = cond_variance_gjr(length(Y_train) + 1: length(Y_train) + length(Y_valid));
             nu = estimated_gjr.Distribution.DoF;
@@ -196,7 +200,9 @@ for symbol_element = {"AAPL", "AMD", "AMZN", "CSCO", "FB", "INTC", "JPM", "MSFT"
             for r = 1:4
             
                 model_gjr = arima('ARLags', r, 'Variance', gjr('GARCHLags', p, 'ARCHLags', q, 'Distribution', 't'));
-                estimated_gjr = estimate(model_gjr, Y_train, 'Display', 'off');
+                opts = optimset('fmincon');
+                opts.Algorithm = 'interior-point';
+                estimated_gjr = estimate(model_gjr, Y_train, 'Display', 'off', 'options', opts);
                 [residual_gjr, cond_variance_gjr] = infer(estimated_gjr, [Y_train; Y_valid]);
                 valid_mean_gjr = Y_valid - residual_gjr(length(Y_train) + 1: length(Y_train) + length(Y_valid));
                 valid_variance_gjr = cond_variance_gjr(length(Y_train) + 1: length(Y_train) + length(Y_valid));

@@ -16,6 +16,7 @@
 
 import os
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import scipy.stats
 
@@ -88,6 +89,32 @@ ax[2].legend(fontsize=10)
 
 fig.tight_layout()
 plt.savefig('images_document/z_qq_plots.png')
+
+
+# -------------------------------------------------------------------------------
+# APPENDIX B: LOGISTIC SIGMOID FUNCTION
+# -------------------------------------------------------------------------------
+
+symbol = 'AAPL'
+data_extracted = pd.read_csv('data/mode sl/datasets/' + symbol + '/data.csv')
+
+log_return = np.diff(np.log(data_extracted['price']))
+
+elle = 200
+variances = []
+standard_deviations = []
+
+for pos in range(elle, len(log_return)):
+
+    sample = log_return[pos - elle: pos]
+    variances.append(np.var(sample))
+    standard_deviations.append(np.std(sample))
+
+plt.figure()
+plt.plot(variances)
+
+plt.figure()
+plt.plot(standard_deviations)
 
 
 # -------------------------------------------------------------------------------

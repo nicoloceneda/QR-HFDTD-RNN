@@ -530,6 +530,7 @@ for count, freq in enumerate(freq_list):
             # The position of this line is crucial
             df_resampled['price'] = df_resampled['price'].interpolate(method='linear')
             df_resampled['price'] = df_resampled['price'].fillna(method='bfill')
+            df_resampled['size'] = df_resampled['size'].fillna(method='bfill')
             df_resampled['sym_root'] = symbol
             df_resampled['date'] = df_resampled.index.date
             df_resampled['time_m'] = df_resampled.index.time
@@ -606,7 +607,7 @@ if args.debug:
 
             os.mkdir('data/mode bg/datasets/' + symbol)
 
-        data = pd.DataFrame(output_resampled_f[output_resampled_f['sym_root'] == symbol][['date', 'time_m', 'price']])
+        data = pd.DataFrame(output_resampled_f[output_resampled_f['sym_root'] == symbol][['date', 'time_m', 'price', 'size']])
         data.to_csv('data/mode bg/datasets/' + symbol + '/data.csv', index=False)
 
 else:
@@ -625,7 +626,7 @@ else:
 
             os.mkdir('data/mode sl/datasets/' + symbol)
 
-        data = pd.DataFrame(output_resampled_f[output_resampled_f['sym_root'] == symbol][['date', 'time_m', 'price']])
+        data = pd.DataFrame(output_resampled_f[output_resampled_f['sym_root'] == symbol][['date', 'time_m', 'price', 'size']])
         data.to_csv('data/mode sl/datasets/' + symbol + '/data.csv', index=False)
 
 

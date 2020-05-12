@@ -131,7 +131,7 @@ The Grid Engine will then run the batch job and return several output files to t
 
 The easiest way to run batch jobs is to create the Python program (.py) and the wrapper shell script (.sh) locally on your computer and then transfer them to the WRDS Cloud via *Secure FTP (SFTP)*. This is a remote filesystem browser that allows to manage files across directories on remote servers and to download and upload data betweem the remote server and the local workstation. This is a convenient way to connect to the WRDS Cloud to manage the files contained in the personal home directory and the scratch directory, browse through the WRDS data and upload or download anything. 
 
-A suggested SFTS browser for Mac is *CyberDuck*, which can be downloaded [here](https://cyberduck.io). Once the SFTP client has been opened on the local workstation, to connect to WRDS Cloud it is necessary to create a new connection with the following parameters:
+A suggested SFTP browser for Mac is *CyberDuck*, which can be downloaded [here](https://cyberduck.io). Once the SFTP client has been opened on the local workstation, to connect to WRDS Cloud it is necessary to create a new connection with the following parameters:
 * Server: wrds-cloud.wharton.upenn.edu
 * Port: 22
 * Username: Your WRDS Username

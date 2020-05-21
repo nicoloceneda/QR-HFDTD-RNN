@@ -1,11 +1,6 @@
 """ lstm_rnn.py
     -----------
-    This script executes a long short term memory recurrent neural network to estimate the parameters of a parametric heavy tailed quantile
-    function.
-
-    Parameters to change:
-    - symbol
-    - elle
+    This script executes a long short term memory recurrent neural network for the Classic LSTM-HTQF.
 
     Contact: nicolo.ceneda@student.unisg.ch
     Last update: 18 May 2020
@@ -36,7 +31,7 @@ import tensorflow as tf
 
 symbol_list = ['AAPL', 'AMD', 'AMZN', 'CSCO', 'FB', 'INTC', 'JPM', 'MSFT', 'NVDA', 'TSLA']
 run_list = [1, 2, 5, 6]
-batch_size_list = [100, 4422, 100, 4422]
+batch_size_list = [100, 4421, 100, 4421]
 hidden_dim_list = [16, 16, 32, 32]
 n_epochs_list = [10, 10, 10, 10]
 
@@ -46,10 +41,6 @@ n_epochs_list = [10, 10, 10, 10]
 for symbol in symbol_list:
 
     for i in range(4):
-
-        # Set the seed
-
-        tf.random.set_seed(1)
 
         # Set the run
 
@@ -178,7 +169,7 @@ for symbol in symbol_list:
 
         def pinball_loss_function(Y_actual, params_predicted):
 
-            q = q_calculator(params_predicted)                                      # (BS x n_z_tau)
+            q = q_calculator(params_predicted)                                 # (BS x n_z_tau)
             error = tf.subtract(tf.cast(Y_actual, dtype=tf.float32), q)        # (BS x 1)-(BS x n_z_tau) = (BS x n_z_tau)
             error_1 = tf.multiply(tau, error)                                  # (1 x n_tau)*(BS x n_z_tau) = (BS x n_z_tau)
             error_2 = tf.multiply(tau - 1, error)                              # (1 x n_tau)*(BS x n_z_tau) = (BS x n_z_tau)

@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import scipy.stats
+import wrds
 
 
 # Create the directory to store the images:
@@ -27,6 +28,59 @@ if not os.path.isdir('images_document'):
 
     os.mkdir('images_document')
 
+
+# -------------------------------------------------------------------------------
+# 4.2. DATA: SAMPLES
+# -------------------------------------------------------------------------------
+
+db = wrds.Connection()
+
+opening_trades = db.raw_sql("SELECT date, time_m, sym_root, sym_suffix, tr_scond, size, price, tr_corr "
+                            "FROM taqm_2019.ctm_20190329 "
+                            "WHERE sym_root = 'AAPL' "
+                            "AND sym_suffix is null "
+                            "AND time_m >= '09:29:50' "
+                            "AND time_m <= '09:30:10' ")
+
+index_resample = pd.DatetimeIndex(opening_trades['date'].apply(str) + ' ' + opening_trades['time_m'].apply(str))
+opening_trades = opening_trades.set_index(index_resample)
+opening_trade = opening_trades[opening_trades['tr_scond'] == '@  Q'][:1]
+
+closing_trades = db.raw_sql("SELECT date, time_m, sym_root, sym_suffix, tr_scond, size, price, tr_corr "
+                            "FROM taqm_2019.ctm_20190329 "
+                            "WHERE sym_root = 'AAPL' "
+                            "AND sym_suffix is null "
+                            "AND time_m >= '15:59:50' "
+                            "AND time_m <= '16:00:10' ")
+
+index_resample = pd.DatetimeIndex(closing_trades['date'].apply(str) + ' ' + closing_trades['time_m'].apply(str))
+closing_trades = closing_trades.set_index(index_resample)
+closing_trade = closing_trades[closing_trades['tr_scond'] == '@  M'][:1]
+
+fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(15, 4))
+
+ax[0].scatter(opening_trades.index, opening_trades['price'],  marker='+', s=20, color='blue', label='AAPL, 2019-03-29, Open')
+ax[0].scatter(opening_trade.index, opening_trade['price'],  marker='s', s=40, edgecolor='k', facecolors='none')
+ax[0].axvline(pd.to_datetime('2019-03-29 09:30:00.000000'), linestyle='-', linewidth=0.5, color='k')
+ax[0].grid(linewidth=0.3)
+ax[0].set_xlabel('Time', fontsize=14)
+ax[0].set_ylabel('Price', fontsize=14)
+ax[0].tick_params(axis='x', labelsize=12)
+ax[0].tick_params(axis='y', labelsize=12)
+ax[0].legend(fontsize=10, loc='lower left')
+
+ax[1].scatter(closing_trades.index, closing_trades['price'],  marker='+', s=20, color='red', label='AAPL, 2019-03-29, Close')
+ax[1].scatter(closing_trade.index, closing_trade['price'],  marker='s', s=40, edgecolor='k', facecolors='none')
+ax[1].axvline(pd.to_datetime('2019-03-29 16:00:00.000000'), linestyle='-', linewidth=0.5, color='k')
+ax[1].grid(linewidth=0.3)
+ax[1].set_xlabel('Time', fontsize=14)
+ax[1].set_ylabel('Price', fontsize=14)
+ax[1].tick_params(axis='x', labelsize=12)
+ax[1].tick_params(axis='y', labelsize=12)
+ax[1].legend(fontsize=10, loc='lower left')
+
+fig.tight_layout()
+plt.savefig('images_document/z_opening_close.png')
 
 # -------------------------------------------------------------------------------
 # 5.3. MODEL: Q-Q PLOTS

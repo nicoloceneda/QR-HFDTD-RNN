@@ -1,6 +1,6 @@
 """ generate_datasets.py
     --------------------
-    This script generates the train, validation and test sets for the Classic LSTM-HTQF.
+    This script generates the train, validation and test sets for the Volume LSTM-HTQF.
 
     Parameters to change:
     - symbol
@@ -35,15 +35,16 @@ symbol_list = ['AAPL', 'AMD', 'AMZN', 'CSCO', 'FB', 'INTC', 'JPM', 'MSFT', 'NVDA
 for symbol in symbol_list:
 
     print('Generating the dataset for:', symbol)
-    
+
     # Import the extracted datasets
 
-    data_extracted = pd.read_csv('data/mode sl/datasets/' + symbol + '/data.csv')
+    data_extracted = pd.read_csv('data/mode sl/datasets/' + symbol + '_volume/data.csv')
 
     # Create the features and target datasets
 
     log_return = np.diff(np.log(data_extracted['price']))
     data = pd.DataFrame({'log_return': log_return})
+    data['volume'] = data_extracted.iloc[1:, 3].reset_index(drop=True)
 
     date_change = (data_extracted['date'] != data_extracted['date'].shift()).astype(int)
     date_change = date_change.iloc[1:].reset_index(drop=True)
@@ -66,7 +67,7 @@ for symbol in symbol_list:
         data_past['log_return_d2'] = r_diff ** 2
         data_past['log_return_d3'] = r_diff ** 3
         data_past['log_return_d4'] = r_diff ** 4
-        X.append(data_past[['log_return', 'log_return_d2', 'log_return_d3', 'log_return_d4']])
+        X.append(data_past[['log_return', 'log_return_d2', 'log_return_d3', 'log_return_d4', 'volume']])
 
     Y = pd.DataFrame(Y, columns=['label'])
     X = pd.concat(X, ignore_index=True)
@@ -106,21 +107,21 @@ for symbol in symbol_list:
 
     # Save the standardized returns
 
-    if not os.path.isdir('data/mode sl/datasets std noj'):
+    if not os.path.isdir('data/mode sl/datasets std noj volume'):
 
-        os.mkdir('data/mode sl/datasets std noj')
+        os.mkdir('data/mode sl/datasets std noj volume')
 
     symbol_elle = symbol + '_' + str(elle)
 
-    if not os.path.isdir('data/mode sl/datasets std noj/' + symbol_elle):
+    if not os.path.isdir('data/mode sl/datasets std noj volume/' + symbol_elle):
 
-        os.mkdir('data/mode sl/datasets std noj/' + symbol_elle)
+        os.mkdir('data/mode sl/datasets std noj volume/' + symbol_elle)
 
-    X_train.to_csv('data/mode sl/datasets std noj/' + symbol_elle + '/X_train.csv', index=False)
-    Y_train.to_csv('data/mode sl/datasets std noj/' + symbol_elle + '/Y_train.csv', index=False)
+    X_train.to_csv('data/mode sl/datasets std noj volume/' + symbol_elle + '/X_train.csv', index=False)
+    Y_train.to_csv('data/mode sl/datasets std noj volume/' + symbol_elle + '/Y_train.csv', index=False)
 
-    X_valid.to_csv('data/mode sl/datasets std noj/' + symbol_elle + '/X_valid.csv', index=False)
-    Y_valid.to_csv('data/mode sl/datasets std noj/' + symbol_elle + '/Y_valid.csv', index=False)
+    X_valid.to_csv('data/mode sl/datasets std noj volume/' + symbol_elle + '/X_valid.csv', index=False)
+    Y_valid.to_csv('data/mode sl/datasets std noj volume/' + symbol_elle + '/Y_valid.csv', index=False)
 
-    X_test.to_csv('data/mode sl/datasets std noj/' + symbol_elle + '/X_test.csv', index=False)
-    Y_test.to_csv('data/mode sl/datasets std noj/' + symbol_elle + '/Y_test.csv', index=False)
+    X_test.to_csv('data/mode sl/datasets std noj volume/' + symbol_elle + '/X_test.csv', index=False)
+    Y_test.to_csv('data/mode sl/datasets std noj volume/' + symbol_elle + '/Y_test.csv', index=False)

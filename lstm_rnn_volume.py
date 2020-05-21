@@ -1,6 +1,6 @@
 """ lstm_rnn.py
     -----------
-    This script executes a long short term memory recurrent neural network for the Volatility LSTM-HTQF.
+    This script executes a long short term memory recurrent neural network for the Volume LSTM-HTQF.
 
     Contact: nicolo.ceneda@student.unisg.ch
     Last update: 18 May 2020
@@ -57,13 +57,13 @@ for symbol in symbol_list:
 
         symbol_elle = symbol + '_' + str(elle)
 
-        X_train = pd.read_csv('data/mode sl/datasets std noj volatility/' + symbol_elle + '/X_train.csv')
-        X_valid = pd.read_csv('data/mode sl/datasets std noj volatility/' + symbol_elle + '/X_valid.csv')
-        X_test = pd.read_csv('data/mode sl/datasets std noj volatility/' + symbol_elle + '/X_test.csv')
+        X_train = pd.read_csv('data/mode sl/datasets std noj volume/' + symbol_elle + '/X_train.csv')
+        X_valid = pd.read_csv('data/mode sl/datasets std noj volume/' + symbol_elle + '/X_valid.csv')
+        X_test = pd.read_csv('data/mode sl/datasets std noj volume/' + symbol_elle + '/X_test.csv')
 
-        Y_train = pd.read_csv('data/mode sl/datasets std noj volatility/' + symbol_elle + '/Y_train.csv')
-        Y_valid = pd.read_csv('data/mode sl/datasets std noj volatility/' + symbol_elle + '/Y_valid.csv')
-        Y_test = pd.read_csv('data/mode sl/datasets std noj volatility/' + symbol_elle + '/Y_test.csv')
+        Y_train = pd.read_csv('data/mode sl/datasets std noj volume/' + symbol_elle + '/Y_train.csv')
+        Y_valid = pd.read_csv('data/mode sl/datasets std noj volume/' + symbol_elle + '/Y_valid.csv')
+        Y_test = pd.read_csv('data/mode sl/datasets std noj volume/' + symbol_elle + '/Y_test.csv')
 
         # Reshape the train, validation and test subsets
 
@@ -200,13 +200,13 @@ for symbol in symbol_list:
 
         # Visualize the learning curve
 
-        if not os.path.isdir('data/mode sl/results noj volatility/'):
+        if not os.path.isdir('data/mode sl/results noj volume/'):
 
-            os.mkdir('data/mode sl/results noj volatility/')
+            os.mkdir('data/mode sl/results noj volume/')
 
-        if not os.path.isdir('data/mode sl/results noj volatility/' + symbol_elle):
+        if not os.path.isdir('data/mode sl/results noj volume/' + symbol_elle):
 
-            os.mkdir('data/mode sl/results noj volatility/' + symbol_elle)
+            os.mkdir('data/mode sl/results noj volume/' + symbol_elle)
 
         hist = history.history
 
@@ -216,7 +216,7 @@ for symbol in symbol_list:
         plt.title('Training loss')
         plt.tick_params(axis='both', which='major')
         plt.tight_layout()
-        plt.savefig('data/mode sl/results noj volatility/' + symbol_elle + '/train_loss_{}.png'.format(run))
+        plt.savefig('data/mode sl/results noj/' + symbol_elle + '/train_loss_{}.png'.format(run))
 
         plt.figure()
         plt.plot(hist['val_loss'], 'r')
@@ -224,7 +224,7 @@ for symbol in symbol_list:
         plt.title('Validation loss')
         plt.tick_params(axis='both', which='major')
         plt.tight_layout()
-        plt.savefig('data/mode sl/results noj volatility/' + symbol_elle + '/valid_loss_{}.png'.format(run))
+        plt.savefig('data/mode sl/results noj/' + symbol_elle + '/valid_loss_{}.png'.format(run))
 
         # -------------------------------------------------------------------------------
         # 5. MAKE PREDICTIONS
@@ -249,16 +249,16 @@ for symbol in symbol_list:
 
         # Save the predictions
 
-        params_predicted_train_df.to_csv('data/mode sl/results noj volatility/' + symbol_elle + '/params_predicted_train_{}.csv'.format(run), index=False)
-        q_params_predicted_train_df.to_csv('data/mode sl/results noj volatility/' + symbol_elle + '/q_params_predicted_train_{}.csv'.format(run), index=False)
+        params_predicted_train_df.to_csv('data/mode sl/results noj/' + symbol_elle + '/params_predicted_train_{}.csv'.format(run), index=False)
+        q_params_predicted_train_df.to_csv('data/mode sl/results noj/' + symbol_elle + '/q_params_predicted_train_{}.csv'.format(run), index=False)
 
-        params_predicted_valid_df.to_csv('data/mode sl/results noj volatility/' + symbol_elle + '/params_predicted_valid_{}.csv'.format(run), index=False)
-        q_params_predicted_valid_df.to_csv('data/mode sl/results noj volatility/' + symbol_elle + '/q_params_predicted_valid_{}.csv'.format(run), index=False)
+        params_predicted_valid_df.to_csv('data/mode sl/results noj/' + symbol_elle + '/params_predicted_valid_{}.csv'.format(run), index=False)
+        q_params_predicted_valid_df.to_csv('data/mode sl/results noj/' + symbol_elle + '/q_params_predicted_valid_{}.csv'.format(run), index=False)
 
-        params_predicted_test_df.to_csv('data/mode sl/results noj volatility/' + symbol_elle + '/params_predicted_test_{}.csv'.format(run), index=False)
-        q_params_predicted_test_df.to_csv('data/mode sl/results noj volatility/' + symbol_elle + '/q_params_predicted_test_{}.csv'.format(run), index=False)
+        params_predicted_test_df.to_csv('data/mode sl/results noj/' + symbol_elle + '/params_predicted_test_{}.csv'.format(run), index=False)
+        q_params_predicted_test_df.to_csv('data/mode sl/results noj/' + symbol_elle + '/q_params_predicted_test_{}.csv'.format(run), index=False)
 
-        # Compute the test results noj volatility
+        # Compute the test results noj
 
         loss_test_tau = pinball_loss_function(Y_test, params_predicted_test)
 
@@ -267,7 +267,7 @@ for symbol in symbol_list:
 
         loss_test_new_tau = pinball_loss_function(Y_test, params_predicted_test)
 
-        with open('data/mode sl/results noj volatility/' + symbol_elle + '/results_{}.txt'.format(run), 'w') as file:
+        with open('data/mode sl/results noj volume/' + symbol_elle + '/results_{}.txt'.format(run), 'w') as file:
 
             file.write('LSTM RNN - Symbol: {}'.format(symbol))
             file.write('\n- Sequence length: {}'.format(elle))

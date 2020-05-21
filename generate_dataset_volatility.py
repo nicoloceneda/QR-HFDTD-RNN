@@ -1,6 +1,6 @@
 """ generate_datasets.py
     --------------------
-    This script generates the train, validation and test sets.
+    This script generates the train, validation and test sets for the Volatility LSTM-HTQF.
 
     Parameters to change:
     - symbol
@@ -9,6 +9,7 @@
     Contact: nicolo.ceneda@student.unisg.ch
     Last update: 18 May 2020
 """
+
 
 # -------------------------------------------------------------------------------
 # 0. CODE SETUP

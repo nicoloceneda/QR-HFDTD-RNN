@@ -99,22 +99,22 @@ def graph_comparison(output1_, output2_, symbol_, date_, usage1_, usage2_):
     y2 = output2_.loc[condition_2, 'price']
     label2 = symbol_ + ', ' + str(pd.to_datetime(date_))[:10] + ', ' + usage2_
 
-    fig, ax = plt.subplots(1, 2, sharey=True, figsize=(30, 10))
+    fig, ax = plt.subplots(1, 2, sharey=True, figsize=(15, 4))
 
-    ax[0].plot(y1, label=label1, linewidth=0.3, color='red')
-    ax[0].grid(color='dimgrey', linewidth=0.15)
+    ax[0].plot(y1, label=label1, linewidth=0.6, color='blue')
+    ax[0].grid(linewidth=0.3)
     ax[0].xaxis.set_major_locator(mdates.MinuteLocator(interval=3))
     ax[0].xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
-    ax[0].set_xlabel('time')
-    ax[0].set_ylabel('price')
+    ax[0].set_xlabel('time', fontsize=14)
+    ax[0].set_ylabel('price',  fontsize=14)
     ax[0].legend()
 
-    ax[1].plot(y2, label=label2, linewidth=0.3, color='blue')
-    ax[1].grid(color='dimgrey', linewidth=0.15)
+    ax[1].plot(y2, label=label2, linewidth=0.6, color='red')
+    ax[1].grid(linewidth=0.3)
     ax[1].xaxis.set_major_locator(mdates.MinuteLocator(interval=3))
     ax[1].xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))
-    ax[1].set_xlabel('time')
-    ax[1].set_ylabel('price')
+    ax[1].set_xlabel('time', fontsize=14)
+    ax[1].set_ylabel('price', fontsize=14)
     ax[1].legend()
 
     fig.tight_layout()

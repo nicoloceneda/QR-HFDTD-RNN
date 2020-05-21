@@ -1,7 +1,7 @@
 
 % Serialize over all symbols
-% {"AAPL", "AMD", "AMZN", "CSCO", "FB", "INTC", "JPM", "MSFT", "NVDA", "TSLA"}
-for symbol_element = {"AMZN", "FB", "TSLA"}
+
+for symbol_element = {"AAPL", "AMD", "AMZN", "CSCO", "FB", "INTC", "JPM", "MSFT", "NVDA", "TSLA"}
 
     symbol = symbol_element{1};
     

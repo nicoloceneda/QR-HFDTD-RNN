@@ -2,7 +2,7 @@
 
 *Author*: Nicolo Ceneda \
 *Contact*: nicolo.ceneda@student.unisg.ch \
-*Website*: [www.nicoloceneda.com](http://www.nicoloceneda.com) \
+*Website*: [http://www.nicoloceneda.com](https://nicoloceneda.github.io/) \
 *Institution*: University of St Gallen \
 *Course*: Master of Banking and Finance \
 *Last update*: 18 May 2020
